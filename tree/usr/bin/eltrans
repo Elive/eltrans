@@ -8,10 +8,13 @@
 
 # FIXME: betatest everything, specially the e17 part
 
-source /lib/elive-scripts/elive-functions.sh 2>/dev/null
+source /usr/lib/elive-tools/functions
+el_make_environment
+TEXTDOMAIN="eltrans"
+export TEXTDOMAIN
 
-lugar=$(pwd)
-TEXTDOMAIN=eltrans
+
+lugar="$(pwd)"
 editor=poeditor
 workingdir="$HOME/Projects/translations"
 e17transdir="${workingdir}/e17"
@@ -21,44 +24,33 @@ preferences="$HOME/.eltrans/account"
 : ${guitool=zenity}
 export guitool
 only_e17="no" # Warning: This option inhabilite the Elive translators part, set it to "yes" if you want to use this tool ONLY for Enlightenment 17 translations
-############################################################################
-gksume()
-{
-   [[ -x /usr/bin/esu ]] &&
-   {
-      esu "$1"
-      return
-   }
-   [[ -x /usr/bin/gksu ]] &&
-   {
-      gksu "$1"
-      return
-   }
-}
-############################################################################
-verifyresult()
-{
-   [[ "$resultado" = "cancel" ]] && exit 0
-   [[ -z "$resultado" ]] && { $guitool --error --text=$"Result null, please make a better choice" ; main ; }
-}
 
-errorfound()
-{
-   $guitool --error --text="Error: `cat /tmp/.eltrans-error`"
-   exitme
-}
+############################################################################
+verifyresult(){
+    if [[ "$resultado" = "cancel" ]] ; then
+	exit 0
+    fi
 
-exitme()
-{
-   [[ -z $1 ]] || $guitool --error --text="$1"
-   rm -f /tmp/.eltrans-error /tmp/.eltrans-list-apps /tmp/.eltrans-list-apps-dir /tmp/.${USER}-eltrans*
-   rm -f $tempfile $tempfile2 ${tempfile}
-   exit 0
+    if [[ -z "$resultado" ]] ; then
+	$guitool --error --text=$"Result null, please make a better choice"
+	main
+    fi
 }
 ############################################################################
-verify_internet()
-{
-   timeout 15 curl www.google.com 2>/dev/null | grep -iq "html" || return 1
+errorfound(){
+    el_error "$(cat /tmp/.eltrans-error)"
+    $guitool --error --text="Error: $(cat /tmp/.eltrans-error)"
+    exitme
+}
+############################################################################
+exitme(){
+    if [[ -z "$1" ]] ; then
+	$guitool --error --text="$1"
+    fi
+
+    rm -f /tmp/.eltrans-error /tmp/.eltrans-list-apps /tmp/.eltrans-list-apps-dir /tmp/.${USER}-eltrans*
+    rm -f "$tempfile" "$tempfile2" "${tempfile}"
+    exit 0
 }
 ############################################################################
 speller_check()
@@ -152,8 +144,8 @@ translate_elive()
 try_translation_elive()
 {
    $guitool --question --text=$"Do you want to use your translation in your system now ?" && {
-      [[ -d /usr/share/locale/${3%%.*}/LC_MESSAGES ]] || gksume "mkdir -p /usr/share/locale/${3%%.*}/LC_MESSAGES"
-      gksume "msgfmt ${2} -o /usr/share/locale/${3%%.*}/LC_MESSAGES/$1.mo" && $guitool --info --text=$"Your translation is installed in your system, you can use it now" || $guitool --error
+      [[ -d /usr/share/locale/${3%%.*}/LC_MESSAGES ]] || gksu "mkdir -p /usr/share/locale/${3%%.*}/LC_MESSAGES"
+      gksu "msgfmt ${2} -o /usr/share/locale/${3%%.*}/LC_MESSAGES/$1.mo" && $guitool --info --text=$"Your translation is installed in your system, you can use it now" || $guitool --error
    }
 }
 ############################################################################
@@ -225,7 +217,9 @@ add_translations_dir_elive()
 update_translations()
 {
    #deprecated(){ # FIXME: remove
-   verify_internet || exitme $"You need an internet connection in order to make translations"
+   if ! el_verify_internet ; then
+       exitme $"You need an internet connection in order to make translations"
+   fi
 
    if [ -d $e17transdir ] && [ -d $e17transdir/svn ] && [ -d $mye17transdir ]
    then
@@ -334,8 +328,8 @@ translate_e17_new_language()
 try_translation_e17()
 {
    $guitool --question --text=$"Do you want to try your translation now ?" && {
-      [[ -d /usr/share/locale/${mylangdef%%.*}/LC_MESSAGES ]] || gksume "mkdir -p /usr/share/locale/${mylangdef%%.*}/LC_MESSAGES"
-      gksume "msgfmt ${1} -o /usr/share/locale/${mylangdef%%.*}/LC_MESSAGES/enlightenment.mo"
+      [[ -d /usr/share/locale/${mylangdef%%.*}/LC_MESSAGES ]] || gksu "mkdir -p /usr/share/locale/${mylangdef%%.*}/LC_MESSAGES"
+      gksu "msgfmt ${1} -o /usr/share/locale/${mylangdef%%.*}/LC_MESSAGES/enlightenment.mo"
       enlightenment_remote -restart 2>/dev/null 1>&2
       sleep 6
    }
