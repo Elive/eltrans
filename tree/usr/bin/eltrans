@@ -8,10 +8,14 @@
 # FIXME: betatest everything, specially the e17 part
 
 # MIGRATION:
+# TODO  COMMENT COMMENT!
+# TODO: change yes'es to booleans check
 # TODO: improve variablenames and funciontnames
 # TODO: read the code searching bugs or bad structure
-# TODO: put local variables where is needed, or make them better
+# TODO: put local variables where is needed, or make them better (search for unset's)
 # TODO: add grammar checker tool (directly inside poedit hack? that could be easier to write)
+# TODO: do not use $1 (et al) variables
+
 # TODO: version of eltrans checker / dependency
 
 source /usr/lib/elive-tools/functions
@@ -21,15 +25,15 @@ export TEXTDOMAIN
 
 
 pwd_orig="$(pwd)"
-poeditor=poeditor
-workingdir="$HOME/Projects/translations"
-e17transdir="${workingdir}/e17"
-elivetransdir="${workingdir}/elive"
-mye17transdir="${e17transdir}/my_translations"
-preferences="$HOME/.eltrans/account"
+app_poeditor=poeditor
+translating_d="$HOME/Projects/translations"
+translating_e17_d="${translating_d}/e17"
+translating_elive_d="${translating_d}/elive"
+translating_e17_worked_d="${translating_e17_d}/my_translations"
+preferences_f="$HOME/.eltrans/account"
 : ${guitool=zenity}
 export guitool
-only_e17="no" # Warning: This option inhabilite the Elive translators part, set it to "yes" if you want to use this tool ONLY for Enlightenment 17 translations
+mode_only_e17_v="no" # Warning: This option inhabilite the Elive translators part, set it to "yes" if you want to use this tool ONLY for Enlightenment 17 translations
 
 ############################################################################
 ui_answer_check(){
@@ -71,7 +75,7 @@ speller_check(){
 	    if [[ -n "$ui_user_answered" ]] && [[ "$ui_user_answered" != "cancel" ]] ; then
 		packagename="$(echo "$ui_user_answered" | awk '{print $1}')"
 		# FIXME: use elive-tools
-		esu "$term -hold -e bash -c \"apt-get update && apt-get install -y ${packagename} && echo -e '\n\nFinished, close the window' \" "
+		gksu "$term -hold -e bash -c \"apt-get update && apt-get install -y ${packagename} && echo -e '\n\nFinished, close the window' \" "
 	    fi
 	else
 	    notify-send -t 6000 $"Warning: Not using speller"
@@ -80,23 +84,23 @@ speller_check(){
 }
 
 ############################################################################
-edit_preferences(){
-    mkdir -p "${preferences%/*}"
-    touch "$preferences"
+preferences_edit(){
+    mkdir -p "${preferences_f%/*}"
+    touch "$preferences_f"
 
-    olduser="$( cat "$preferences" | grep username | sed 's/^.*:://g' )"
-    oldpass="$( cat "$preferences" | grep password | sed 's/^.*:://g' )"
+    pref_user_cached_v="$( cat "$preferences_f" | grep username | sed 's/^.*:://g' )"
+    pref_user_cached_v="$( cat "$preferences_f" | grep password | sed 's/^.*:://g' )"
 
     $guitool --info --text=$"To collaborate with Elive making translations, you need to create yourself an account in http://www.elivecd.org/Help/Collaborate\n\nThanks a lot for your collaboration"
-    ui_user_answered="$( $guitool --entry --title=$"Elive Translator Account" --text=$"Enter the Username of your Elive translator account" --entry-text="$olduser" || echo cancel )"
+    ui_user_answered="$( $guitool --entry --title=$"Elive Translator Account" --text=$"Enter the Username of your Elive translator account" --entry-text="$pref_user_cached_v" || echo cancel )"
     ui_answer_check
     newuser="$ui_user_answered"
 
-    ui_user_answered="$( $guitool --entry --title=$"Elive Translator Account" --text=$"Enter the Password of your Elive translator account" --entry-text="$oldpass" || echo cancel )"
+    ui_user_answered="$( $guitool --entry --title=$"Elive Translator Account" --text=$"Enter the Password of your Elive translator account" --entry-text="$pref_user_cached_v" || echo cancel )"
     ui_answer_check
     newpass="$ui_user_answered"
 
-    echo -e "username::${newuser}\npassword::${newpass}" > "$preferences"
+    echo -e "username::${newuser}\npassword::${newpass}" > "$preferences_f"
 
     # wtf?
     [[ -n "$1" ]] && "$1"
@@ -118,49 +122,49 @@ translate_elive(){
     ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title=$"Select Language" --text=$"Select the language variant (locale) that you want to translate to, your system are using now the '${LANG%%_*}' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation, so, for you: '${LANG%%_*}'\n\nNote: You can do translations <b>to Englighs</b> too (clean English) using the 'en' value" || echo cancel )"
 
     ui_answer_check
-    mylangdef="$ui_user_answered"
+    language_user="$ui_user_answered"
 
-    verify_locale_supported "$mylangdef" translate_elive
+    verify_locale_supported "$language_user" translate_elive
 
-    speller_check "$mylangdef"
+    speller_check "$language_user"
 
     mkdir -p "$1/tmp"
 
-    if [[ -f "$1/${mylangdef%%_*}.pot" ]] ; then
-	cp "$1/${mylangdef%%_*}.pot" "$1/tmp/base_translation.pot"
-	basetrans=yes
+    if [[ -f "$1/${language_user%%_*}.pot" ]] ; then
+	cp "$1/${language_user%%_*}.pot" "$1/tmp/base_translation.pot"
+	is_base_translation_avail=yes
     fi
 
-    if [[ -f "$1/${mylangdef}.pot" ]] ; then
-	cp "$1/${mylangdef}.pot" "$1/tmp/base_translation.pot"
-	basetrans=yes
+    if [[ -f "$1/${language_user}.pot" ]] ; then
+	cp "$1/${language_user}.pot" "$1/tmp/base_translation.pot"
+	is_base_translation_avail=yes
     fi
 
-    if [[ "$basetrans" = "yes" ]] ; then
-	msgmerge -o "$1/${mylangdef}.pot" "$1/tmp/base_translation.pot" "$1/default.pot"
+    if [[ "$is_base_translation_avail" = "yes" ]] ; then
+	msgmerge -o "$1/${language_user}.pot" "$1/tmp/base_translation.pot" "$1/default.pot"
     else
-	xgettext -s --language=PO --foreign-user --from-code utf-8 -o "$1/${mylangdef}.pot" "$1/default.pot"
+	xgettext -s --language=PO --foreign-user --from-code utf-8 -o "$1/${language_user}.pot" "$1/default.pot"
     fi
 
-    sed -i '/Content-Type/s/charset=.*$/charset=utf-8\\n"/' "$1/${mylangdef}.pot"
+    sed -i '/Content-Type/s/charset=.*$/charset=utf-8\\n"/' "$1/${language_user}.pot"
 
     rm -rf "$1/tmp"
 
-    count_messages_completed "$1/${mylangdef}.pot"
+    count_messages_completed "$1/${language_user}.pot"
 
-    if [[ "$fuzzy" -ge "10" ]] ; then
+    if [[ "$fuzzy_msgs_v" -ge "10" ]] ; then
 	notify-send -t 100000 $"Eltrans: If you've got messages that need an update (FUZZY) but they are correctly translated, you can press the cloud icon."" "$"(or the Alt + U key)"
     else
 	notify-send -t 100000 $"Tip: For moving more faster to the next message, press TAB, the down-arrow, and TAB again"
     fi
 
-    "$poeditor" "$1/${mylangdef}.pot"
+    "$app_poeditor" "$1/${language_user}.pot"
 
-    rm -f "$1/${mylangdef}.mo"
+    rm -f "$1/${language_user}.mo"
 
     # TODO: improve that crap
-    try_translation_elive "$( basename $1 )" "$1/${mylangdef}.pot" "$mylangdef"
-    commit_changes_elive "$( basename $1 )" "${mylangdef}.pot" "$1" "${mylangdef}"
+    try_translation_elive "$( basename $1 )" "$1/${language_user}.pot" "$language_user"
+    commit_changes_elive "$( basename $1 )" "${language_user}.pot" "$1" "${language_user}"
 }
 ############################################################################
 try_translation_elive(){
@@ -184,15 +188,15 @@ commit_changes_elive(){
 	return
     fi
 
-    if ! [[ -f "$preferences" ]] ; then
-	edit_preferences
+    if ! [[ -f "$preferences_f" ]] ; then
+	preferences_edit
     fi
 
-    olduser="$( cat "$preferences" | grep username | sed 's/^.*:://g' )"
-    oldpass="$( cat "$preferences" | grep password | sed 's/^.*:://g' )"
+    pref_user_cached_v="$( cat "$preferences_f" | grep username | sed 's/^.*:://g' )"
+    pref_user_cached_v="$( cat "$preferences_f" | grep password | sed 's/^.*:://g' )"
 
-    [[ -z "$olduser" ]] && edit_preferences
-    [[ -z "$oldpass" ]] && edit_preferences
+    [[ -z "$pref_user_cached_v" ]] && preferences_edit
+    [[ -z "$pref_user_cached_v" ]] && preferences_edit
 
     cd "$3"
 
@@ -227,7 +231,7 @@ commit_changes_elive(){
 
     for blklisted in "$( curl http://main.elivecd.org/tmp/blklisted-translators 2>/dev/null )"
     do
-	[[ "$olduser" = "$blklisted" ]] && blklist=yes
+	[[ "$pref_user_cached_v" = "$blklisted" ]] && blklist=yes
     done
 
     if [[ "$blklist" = "yes" ]] ; then
@@ -235,7 +239,7 @@ commit_changes_elive(){
 	$guitool --info --text="Translation sent sucessfully, Thanks a lot for your collaboration, it can be reviewed soon and included directly on Elive the next time."
 
     else
-	$term -e bash -c "if svn commit --no-auth-cache --username \"$olduser\" --password \"$oldpass\" -m \"Eltrans auto:  |${1}|  in  |${4}|  by '$( awk -v var="$olduser" "BEGIN {print tolower(var)}" )'\" ; then sleep 1 ; $guitool --info --text=\"Translation sent sucessfully, Thanks a lot for your collaboration, it can be reviewed soon and included directly on Elive the next time. You can check it directly at http://dev.elivecd.org/timeline, apart to use the features of the site like watch other translations, diff them, recover an old translation, etc...\" ; else $guitool --error --text=\"Error sending your translation, if you are using a Wrong Username or Password for the send please remove the file $preferences, otherwise the better solution is to remove your full translations project dir $elivetransdir and run the 'clean' or 'purge' option of eltrans. You can backup before your translated file and compare it with the 'meld' tool \" ; fi"
+	$term -e bash -c "if svn commit --no-auth-cache --username \"$pref_user_cached_v\" --password \"$pref_user_cached_v\" -m \"Eltrans auto:  |${1}|  in  |${4}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'\" ; then sleep 1 ; $guitool --info --text=\"Translation sent sucessfully, Thanks a lot for your collaboration, it can be reviewed soon and included directly on Elive the next time. You can check it directly at http://dev.elivecd.org/timeline, apart to use the features of the site like watch other translations, diff them, recover an old translation, etc...\" ; else $guitool --error --text=\"Error sending your translation, if you are using a Wrong Username or Password for the send please remove the file $preferences_f, otherwise the better solution is to remove your full translations project dir $translating_elive_d and run the 'clean' or 'purge' option of eltrans. You can backup before your translated file and compare it with the 'meld' tool \" ; fi"
 
     fi
 
@@ -244,23 +248,23 @@ commit_changes_elive(){
 }
 ############################################################################
 add_translations_dir_e17(){
-    mkdir -p "${workingdir}"
-    cd "$workingdir"
+    mkdir -p "${translating_d}"
+    cd "$translating_d"
 
     rm -rf e
-    rm -rf "$e17transdir" 2>/dev/null
+    rm -rf "$translating_e17_d" 2>/dev/null
 
     $term -e bash -c "echo 'Download Enlightenment 17 sources...' ; svn co http://svn.enlightenment.org/svn/e/trunk/e || sleep 6"
 
-    mkdir -p "$e17transdir"
-    mv e "$e17transdir/svn"
+    mkdir -p "$translating_e17_d"
+    mv e "$translating_e17_d/svn"
 
-    mkdir -p "$mye17transdir"
+    mkdir -p "$translating_e17_worked_d"
 }
 ############################################################################
 add_translations_dir_elive(){
-    mkdir -p "$workingdir"
-    cd "$workingdir"
+    mkdir -p "$translating_d"
+    cd "$translating_d"
     rm -rf elive
 
     $term -e bash -c "echo 'Downloading translations...' ; svn --no-auth-cache --username anonymous --password anonymous co svn://elivecd.org/translations elive || { sleep 6 ; $guitool --error --text=\"Error downloading the translations of Elive, please try again later or remove your directory Projects/translations\" ; } "
@@ -273,22 +277,22 @@ update_translations(){
 	exit_ok $"You need an internet connection in order to make translations"
     fi
 
-    if [[ -d "$e17transdir" ]] && [[ -d "$e17transdir/svn" ]] && [[ -d "$mye17transdir" ]] ; then
-	cd "$e17transdir/svn"
+    if [[ -d "$translating_e17_d" ]] && [[ -d "$translating_e17_d/svn" ]] && [[ -d "$translating_e17_worked_d" ]] ; then
+	cd "$translating_e17_d/svn"
 	$term -e bash -c "echo 'Updating...' ; svn update || { svn cleanup ; svn update || sleep 10 ; } "
     else
 
 	add_translations_dir_e17
     fi
 
-    if ! [[ "$only_e17" = "yes" ]] ; then
-	if [[ -d "$workingdir/elive" ]] ; then
+    if ! [[ "$mode_only_e17_v" = "yes" ]] ; then
+	if [[ -d "$translating_d/elive" ]] ; then
 
-	    cd "${workingdir}/elive"
+	    cd "${translating_d}/elive"
 
 	    # TODO: dont use static names, use a generic variable
 	    rm -rf "/tmp/${USER}-translations-eltrans"
-	    cp -r "${workingdir}/elive" "/tmp/${USER}-translations-eltrans"
+	    cp -r "${translating_d}/elive" "/tmp/${USER}-translations-eltrans"
 
 	    $term -e bash -c "echo 'Cleaning...' ; svn cleanup "
 	    # TODO: dont use static names, use a generic variable
@@ -301,12 +305,12 @@ update_translations(){
 	    fi
 
 	    if grep -q "^G " /tmp/.${USER}-eltrans-logs ; then
-		unset files
+		unset conflicted_file_f
 
-		files="$( grep "^G " /tmp/.${USER}-eltrans-logs | awk '{print $2}' | tr '\n' ' ')"
+		conflicted_file_f="$( grep "^G " /tmp/.${USER}-eltrans-logs | awk '{print $2}' | tr '\n' ' ')"
 
-		$guitool --warning --text=$"IMPORTANT: There is an update of the file '${files}' that conflicts with your version. It will be removed so eltrans will work correctly, but if you have an old translation that you don't want to lose, you will have to make a backup of this file to /tmp/${USER}-translations-eltrans. Then you should close eltrans, install the 'meld' package, and compare this file with the actual one in ${workingdir}. Run eltrans again with your updated file and commit the translation if needed. If you don't care about this old file, just ignore this message and continue."
-		unset files
+		$guitool --warning --text=$"IMPORTANT: There is an update of the file '${conflicted_file_f}' that conflicts with your version. It will be removed so eltrans will work correctly, but if you have an old translation that you don't want to lose, you will have to make a backup of this file to /tmp/${USER}-translations-eltrans. Then you should close eltrans, install the 'meld' package, and compare this file with the actual one in ${translating_d}. Run eltrans again with your updated file and commit the translation if needed. If you don't care about this old file, just ignore this message and continue."
+		unset conflicted_file_f
 	    fi
 
 	    rm -f "/tmp/.${USER}-eltrans-logs"
@@ -316,9 +320,9 @@ update_translations(){
     fi
     #} # FIXME: remove
 
-    cd "${workingdir}"
+    cd "${translating_d}"
 
-    xgettext -C --foreign-user -k -k_ -kd_ -kD_ -o enlightenment.pot "$(find "${e17transdir}/svn" -name "*.[ch]" -print)" -p "$mye17transdir" --from-code utf-8
+    xgettext -C --foreign-user -k -k_ -kd_ -kD_ -o enlightenment.pot "$(find "${translating_e17_d}/svn" -name "*.[ch]" -print)" -p "$translating_e17_worked_d" --from-code utf-8
 
     cd "$pwd_orig"
 }
@@ -326,36 +330,36 @@ update_translations(){
 translate_e17_new_language(){
     unset edited
 
-    cd "${e17transdir}"
+    cd "${translating_e17_d}"
 
     ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title=$"Select Language" --text=$"Select the language variant (locale) that you want to translate to, your system are using now the '${LANG%%_*}' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nNote: You can do translations to english too (clean english) using the 'en' value" || echo cancel )"
 
     ui_answer_check
-    mylangdef="$ui_user_answered"
+    language_user="$ui_user_answered"
 
-    verify_locale_supported "$mylangdef" translate_e17_new_language
-    speller_check "$mylangdef"
+    verify_locale_supported "$language_user" translate_e17_new_language
+    speller_check "$language_user"
 
-    if [[ -f "$mye17transdir/${mylangdef}.pot" ]] ; then
+    if [[ -f "$translating_e17_worked_d/${language_user}.pot" ]] ; then
 	ui_user_answered="$( $guitool --list --text=$"Old translation found. Select an option:" --column="" --column=$"Option" 1 $"Edit a previously made translation" 2 $"Remove it and create a new one" || echo cancel )"
 	ui_answer_check
 
 	case "$ui_user_answered" in
 	    1)
-		#mv $mye17transdir/${mylangdef}.pot $mye17transdir/${mylangdef}.old.pot
-		msgmerge -U "$mye17transdir/${mylangdef}.pot" "$mye17transdir/enlightenment.pot"
-		#rm $mye17transdir/${mylangdef}.old.pot
+		#mv $translating_e17_worked_d/${language_user}.pot $translating_e17_worked_d/${language_user}.old.pot
+		msgmerge -U "$translating_e17_worked_d/${language_user}.pot" "$translating_e17_worked_d/enlightenment.pot"
+		#rm $translating_e17_worked_d/${language_user}.old.pot
 
-		$poeditor "$mye17transdir/${mylangdef}.pot"
+		$app_poeditor "$translating_e17_worked_d/${language_user}.pot"
 
-		if ! grep -iq "Elive Translation tool" "$mye17transdir/${mylangdef}.pot" ; then
-		    sed -i "3a# \n# This translation was created/edited with the Elive translation tool" "$mye17transdir/${mylangdef}.pot"
+		if ! grep -iq "Elive Translation tool" "$translating_e17_worked_d/${language_user}.pot" ; then
+		    sed -i "3a# \n# This translation was created/edited with the Elive translation tool" "$translating_e17_worked_d/${language_user}.pot"
 		fi
 
 		edited=yes
 		;;
 	    2)
-		rm -f "$mye17transdir/${mylangdef}.pot"
+		rm -f "$translating_e17_worked_d/${language_user}.pot"
 
 		;;
 	esac
@@ -363,52 +367,52 @@ translate_e17_new_language(){
 
     if ! [[ "$edited" = "yes" ]] ; then
 
-	mkdir -p "$mye17transdir/tmp"
+	mkdir -p "$translating_e17_worked_d/tmp"
 
-	if [[ -f "${e17transdir}/svn/po/${mylangdef%%_*}.po" ]] ; then
-	    cp "${e17transdir}/svn/po/${mylangdef%%_*}.po" "$mye17transdir/tmp/base_translation.po"
-	    basetrans=yes
+	if [[ -f "${translating_e17_d}/svn/po/${language_user%%_*}.po" ]] ; then
+	    cp "${translating_e17_d}/svn/po/${language_user%%_*}.po" "$translating_e17_worked_d/tmp/base_translation.po"
+	    is_base_translation_avail=yes
 	fi
-	if [[ -f "${e17transdir}/svn/po/${mylangdef}.po" ]] ; then
-	    cp "${e17transdir}/svn/po/${mylangdef}.po" "$mye17transdir/tmp/base_translation.po"
-	    basetrans=yes
+	if [[ -f "${translating_e17_d}/svn/po/${language_user}.po" ]] ; then
+	    cp "${translating_e17_d}/svn/po/${language_user}.po" "$translating_e17_worked_d/tmp/base_translation.po"
+	    is_base_translation_avail=yes
 	fi
 
-	if [[ "$basetrans" = "yes" ]] ; then
-	    msgmerge -o "$mye17transdir/${mylangdef}.pot" "$mye17transdir/tmp/base_translation.po" "$mye17transdir/enlightenment.pot"
+	if [[ "$is_base_translation_avail" = "yes" ]] ; then
+	    msgmerge -o "$translating_e17_worked_d/${language_user}.pot" "$translating_e17_worked_d/tmp/base_translation.po" "$translating_e17_worked_d/enlightenment.pot"
 	else
-	    cp "$mye17transdir/enlightenment.pot" "$mye17transdir/${mylangdef}.pot"
+	    cp "$translating_e17_worked_d/enlightenment.pot" "$translating_e17_worked_d/${language_user}.pot"
 	fi
 
-	rm -rf "$mye17transdir/enlightenment.pot" "$mye17transdir/tmp"
+	rm -rf "$translating_e17_worked_d/enlightenment.pot" "$translating_e17_worked_d/tmp"
 
-	$poeditor "$mye17transdir/${mylangdef}.pot"
+	$app_poeditor "$translating_e17_worked_d/${language_user}.pot"
 
-	if ! grep -iq "Elive Translation tool" "$mye17transdir/${mylangdef}.pot" ; then
-	    sed -i "3a# \n# This translator was created/edited with the Elive translation tool" "$mye17transdir/${mylangdef}.pot"
+	if ! grep -iq "Elive Translation tool" "$translating_e17_worked_d/${language_user}.pot" ; then
+	    sed -i "3a# \n# This translator was created/edited with the Elive translation tool" "$translating_e17_worked_d/${language_user}.pot"
 	fi
     fi
 
-    rm -f "$mye17transdir/${mylangdef}.mo"
+    rm -f "$translating_e17_worked_d/${language_user}.mo"
 
-    try_translation_e17 "$mye17transdir/${mylangdef}.pot"
+    try_translation_e17 "$translating_e17_worked_d/${language_user}.pot"
 }
 ############################################################################
 try_translation_e17(){
     if $guitool --question --text=$"Do you want to try your translation now ?" ; then
 
-	if ! [[ -d /usr/share/locale/${mylangdef%%.*}/LC_MESSAGES ]] ; then
-	    gksu "mkdir -p /usr/share/locale/${mylangdef%%.*}/LC_MESSAGES"
+	if ! [[ -d /usr/share/locale/${language_user%%.*}/LC_MESSAGES ]] ; then
+	    gksu "mkdir -p /usr/share/locale/${language_user%%.*}/LC_MESSAGES"
 	fi
 
-	gksu "msgfmt \"${1}\" -o /usr/share/locale/${mylangdef%%.*}/LC_MESSAGES/enlightenment.mo"
+	gksu "msgfmt \"${1}\" -o /usr/share/locale/${language_user%%.*}/LC_MESSAGES/enlightenment.mo"
 
 	enlightenment_remote -restart 2>/dev/null 1>&2
 
 	sleep 6
     fi
 
-    $guitool --info --title=$"Send your translation" --text=$"Now, you need to send your translation(s) to Enlightenment 17 developers, for that, you need to send it via email to the enlightenment-intl mailing list.\n\nYour Enlightenment 17 Translation files are located in your $mye17transdir directory\n\nPress Continue to be redirected to the mailing list suscription on your web-browser.\n\nAdd a small description to the email like the language translated and the possible variant, the Operating-System, your country, and your locales value, your one is: $LANG"
+    $guitool --info --title=$"Send your translation" --text=$"Now, you need to send your translation(s) to Enlightenment 17 developers, for that, you need to send it via email to the enlightenment-intl mailing list.\n\nYour Enlightenment 17 Translation files are located in your $translating_e17_worked_d directory\n\nPress Continue to be redirected to the mailing list suscription on your web-browser.\n\nAdd a small description to the email like the language translated and the possible variant, the Operating-System, your country, and your locales value, your one is: $LANG"
 
     if ! /etc/alternatives/x-www-browser https://lists.sourceforge.net/lists/listinfo/enlightenment-intl 2>/dev/null 1>&2 ; then
 	# do something?
@@ -432,16 +436,16 @@ clean_elive_dir(){
 
     case "$ui_user_answered" in
 	"Purge")
-	    rm -rf "$preferences"
+	    rm -rf "$preferences_f"
 
-	    if $guitool --question --text=$"You are going to remove your translations directory (not the Enlightenment 17 translations). This will remove all the translations that you have not sent or installed. If you like, do a backup of your '${elivetransdir}' directory first, and after that, continue." ; then
-		rm -rf "$elivetransdir"
+	    if $guitool --question --text=$"You are going to remove your translations directory (not the Enlightenment 17 translations). This will remove all the translations that you have not sent or installed. If you like, do a backup of your '${translating_elive_d}' directory first, and after that, continue." ; then
+		rm -rf "$translating_elive_d"
 	    fi
 
 	    main
 	    ;;
 	"Revert")
-	    $guitool --info --text=$"If you have made a wrong translation and sent it to Elive, the best way to correct this is: First of all, go to http://dev.elivecd.org , you need to login, then click on 'timeline' to see the latest changes, if you click on the commit number you can see the real changes made (visually), if it is wrong, search a previous (correct) commit, so click on 'Previous Changeset', now you are in the previous change made, if it is ok, remember the revision number (because it's the correct one that you need to use after) and click to the single file link (in the left part, in the details of the changeset) or search it in 'Browse source' tab, when you are on this page, be sure that it's the correct revision and go to the bottom of the page and click to the link 'Download in Original Format', when you have it you just need to replace your local file (normally in ${elivetransdir}) with this one and from this directory, run the commant: svn commit -m 'reverting to old version'"
+	    $guitool --info --text=$"If you have made a wrong translation and sent it to Elive, the best way to correct this is: First of all, go to http://dev.elivecd.org , you need to login, then click on 'timeline' to see the latest changes, if you click on the commit number you can see the real changes made (visually), if it is wrong, search a previous (correct) commit, so click on 'Previous Changeset', now you are in the previous change made, if it is ok, remember the revision number (because it's the correct one that you need to use after) and click to the single file link (in the left part, in the details of the changeset) or search it in 'Browse source' tab, when you are on this page, be sure that it's the correct revision and go to the bottom of the page and click to the link 'Download in Original Format', when you have it you just need to replace your local file (normally in ${translating_elive_d}) with this one and from this directory, run the commant: svn commit -m 'reverting to old version'"
 
 	    main
 	    ;;
@@ -450,7 +454,7 @@ clean_elive_dir(){
 }
 ############################################################################
 translation_edit(){
-    "$poeditor" "$1"
+    $app_poeditor "$1"
 
     if ! grep -iq "Elive Translation tool" "$1" ; then
 	sed -i "3a# \n# This translator was created/edited with the Elive translation tool" "$1"
@@ -460,44 +464,45 @@ translation_edit(){
 }
 ############################################################################
 count_messages_completed(){
-    unset lessthan allmessages allmessagesnull nomessages nomessagesnull fuzzy percent
+    # Well, somebody should document this function, it gives me a few headaches to think on it and I dont have time for it right now :P
+    unset count_less_than_v count_msg_all_v count_msg_all_null_v count_msg_no_v count_msg_no_null_v fuzzy_msgs_v count_percent_v
 
-    allmessages="$( cat $1 | egrep "^msgid" | wc -l )"
+    count_msg_all_v="$( cat "$1" | egrep "^msgid" | wc -l )"
 
-    #allmessagesnull=$( cat $1 | egrep "^msgid" | grep "msgid \"\"" | wc -l )
-    allmessagesnull="$(cat "$1" | awk '{if(prev=="msgid \"\"" && $0==""){count++};prev=$0}END{print count}' )"
+    #count_msg_all_null_v=$( cat $1 | egrep "^msgid" | grep "msgid \"\"" | wc -l )
+    count_msg_all_null_v="$(cat "$1" | awk '{if(prev=="msgid \"\"" && $0==""){count++};prev=$0}END{print count}' )"
 
-    #allmessages=$( cat $2/default.pot | egrep "^msgid" | wc -l ) # deprecated way: there's a merge if >= 100
-    #allmessagesnull=$( cat $2/default.pot | egrep "^msgid" | grep "msgid \"\"" | wc -l )
+    #count_msg_all_v=$( cat $2/default.pot | egrep "^msgid" | wc -l ) # deprecated way: there's a merge if >= 100
+    #count_msg_all_null_v=$( cat $2/default.pot | egrep "^msgid" | grep "msgid \"\"" | wc -l )
 
-    if [[ -z "$allmessagesnull" ]] ; then
-	allmessagesnull=0
+    if [[ -z "$count_msg_all_null_v" ]] ; then
+	count_msg_all_null_v=0
     fi
 
-    nomessages="$( cat $1 | egrep "^msgstr" | wc -l )"
+    count_msg_no_v="$( cat $1 | egrep "^msgstr" | wc -l )"
 
-    #nomessagesnull=$( cat $1 | egrep "^msgstr" | grep "msgstr \"\"" | wc -l )
-    nomessagesnull="$( cat "$1" | awk '{if(prev=="msgstr \"\"" && $0==""){count++};prev=$0}END{print count}' )"
+    #count_msg_no_null_v=$( cat $1 | egrep "^msgstr" | grep "msgstr \"\"" | wc -l )
+    count_msg_no_null_v="$( cat "$1" | awk '{if(prev=="msgstr \"\"" && $0==""){count++};prev=$0}END{print count}' )"
 
-    [[ -z "$nomessagesnull" ]] && nomessagesnull=0
+    [[ -z "$count_msg_no_null_v" ]] && count_msg_no_null_v=0
 
-    percent="$( echo -e "( ( $nomessages - $nomessagesnull ) / ( $allmessages - $allmessagesnull ) ) * 100" | bc -l )"
+    count_percent_v="$( echo -e "( ( $count_msg_no_v - $count_msg_no_null_v ) / ( $count_msg_all_v - $count_msg_all_null_v ) ) * 100" | bc -l )"
 
-    if [[ "$(( $allmessages - $allmessagesnull ))" -gt "$(( $nomessages - $nomessagesnull ))" ]] ; then
-	lessthan=yes
+    if [[ "$(( $count_msg_all_v - $count_msg_all_null_v ))" -gt "$(( $count_msg_no_v - $count_msg_no_null_v ))" ]] ; then
+	count_less_than_v=yes
     fi
 
-    percent="${percent%%.*}"
+    count_percent_v="${count_percent_v%%.*}"
 
-    if [[ "$percent" = "100" ]] && [[ "$lessthan" = "yes" ]] ; then
-	percent=99
+    if [[ "$count_percent_v" = "100" ]] && [[ "$count_less_than_v" = "yes" ]] ; then
+	count_percent_v=99
     fi
 
-    fuzzy="$( cat "$1" | awk -v FS="\n" -v RS="" '{ if ($1 == "#, fuzzy") if ($2 ~ "^msgid ") print $1 }' | wc -l )"
+    fuzzy_msgs_v="$( cat "$1" | awk -v FS="\n" -v RS="" '{ if ($1 == "#, fuzzy") if ($2 ~ "^msgid ") print $1 }' | wc -l )"
 }
 ############################################################################
 translate_new(){
-    if [[ "$only_e17" = "yes" ]] ; then
+    if [[ "$mode_only_e17_v" = "yes" ]] ; then
 	ui_user_answered="Enlightenment 17"
     else
 	# TODO: dont use static names, use a generic variable
@@ -512,66 +517,66 @@ translate_new(){
 	echo -e "Enlightenment 17" >> "$tempfile"
 	echo -e $"Basically, your Desktop and Graphical interface/system." >> "$tempfile"
 
-	for i in ${workingdir}/elive/*
+	for item_v in ${translating_d}/elive/*
 	do
-	    if [[ -d $i ]]; then
-		unset appname description order percent thislang
+	    if [[ -d "$item_v" ]]; then
+		unset tr_name_v tr_description_v item_order_v count_percent_v item_lang_v
 
-		appname="$( basename $i )"
-		description="$( cat "$i/description.txt" 2>/dev/null | head -1 )"
+		tr_name_v="$( basename $item_v )"
+		tr_description_v="$( cat "$item_v/description.txt" 2>/dev/null | head -1 )"
 
-		if [[ -n "$description" ]]; then
+		if [[ -n "$tr_description_v" ]]; then
 
-		    [[ -f "$i/${LANG%%_*}.pot" ]] && thislang="${LANG%%_*}"
-		    [[ -f "$i/${LANG%%.*}.pot" ]] && thislang="${LANG%%.*}"
+		    [[ -f "$item_v/${LANG%%_*}.pot" ]] && item_lang_v="${LANG%%_*}"
+		    [[ -f "$item_v/${LANG%%.*}.pot" ]] && item_lang_v="${LANG%%.*}"
 
 		    # blacklist liveboot for some languages
-		    if [[ "$appname" = "liveboot" ]] ; then
+		    if [[ "$tr_name_v" = "liveboot" ]] ; then
 			# XXX Note: these blacklisted values depends too of the blacklisted ones in elive-building-suite (removing the generated .mo files)
 			# FIXME : values
-			if echo "${thislang}" | grep -qE "(ar*|bg*|hr*|cs*|el*|iw*|hi*|ja*|lv*|lt*|no*|pl*|pt*|ro*|ru*|sk*|sl*|sv*|uk*|vi*)" ; then
+			if echo "${item_lang_v}" | grep -qE "(ar*|bg*|hr*|cs*|el*|iw*|hi*|ja*|lv*|lt*|no*|pl*|pt*|ro*|ru*|sk*|sl*|sv*|uk*|vi*)" ; then
 			    continue
 			fi
 		    fi
 
 
-		    if [[ -z "$thislang" ]]; then
-			description=$"NEW: ${description} - 0 % completed"
+		    if [[ -z "$item_lang_v" ]]; then
+			tr_description_v=$"NEW: ${tr_description_v} - 0 % completed"
 
 		    else
-			count_messages_completed "$i/${thislang}.pot" "$i"
+			count_messages_completed "$item_v/${item_lang_v}.pot" "$item_v"
 
-			if [[ "${percent}" -ge "100" ]] ; then
-			    msgmerge -U "$i/${thislang}.pot" "$i/default.pot" 2>/dev/null 1>&2
-			    #mv $i/${thislang}.tmp.pot $i/${thislang}.pot
-			    count_messages_completed "$i/${thislang}.pot" "$i"
+			if [[ "${count_percent_v}" -ge "100" ]] ; then
+			    msgmerge -U "$item_v/${item_lang_v}.pot" "$item_v/default.pot" 2>/dev/null 1>&2
+			    #mv $item_v/${item_lang_v}.tmp.pot $item_v/${item_lang_v}.pot
+			    count_messages_completed "$item_v/${item_lang_v}.pot" "$item_v"
 			fi
 			# Normal description set for different percentages
-			if [[ "${percent}" = "100" ]] ; then
-			    description=$"- Completed - Translation is not needed in the '${thislang}' language."
-			    order=8
+			if [[ "${count_percent_v}" = "100" ]] ; then
+			    tr_description_v=$"- Completed - Translation is not needed in the '${item_lang_v}' language."
+			    item_order_v=8
 			else
-			    description="${description} - ${percent} %"$" completed (${thislang})"
-			    order=2
+			    tr_description_v="${tr_description_v} - ${count_percent_v} %"$" completed (${item_lang_v})"
+			    item_order_v=2
 			fi
 			# If is fuzzy
-			if [[ "$fuzzy" -ge "1" ]] && [[ "$percent" = "100" ]] ; then
-			    description=$"Needs ${fuzzy} updates (${thislang}) "
-			    order=4
+			if [[ "$fuzzy_msgs_v" -ge "1" ]] && [[ "$count_percent_v" = "100" ]] ; then
+			    tr_description_v=$"Needs ${fuzzy_msgs_v} updates (${item_lang_v}) "
+			    item_order_v=4
 			fi
 		    fi
 
 
-		    if [[ -n $description ]]; then
+		    if [[ -n "$tr_description_v" ]]; then
 
-			# [[ "${percent}" = "100" ]] && echo -e "${appname}\n${description}" >> $tempfile2 || echo -e "${appname}\n${description}" >> $tempfile
-			echo -e "${appname}\n${description}" >> ${tempfile}_order_${order}
+			# [[ "${count_percent_v}" = "100" ]] && echo -e "${tr_name_v}\n${tr_description_v}" >> $tempfile2 || echo -e "${tr_name_v}\n${tr_description_v}" >> $tempfile
+			echo -e "${tr_name_v}\n${tr_description_v}" >> ${tempfile}_order_${item_order_v}
 		    fi
 		fi
 	    fi
 	done
 
-	ui_user_answered="$( cat $tempfile ${tempfile}_order_* | $guitool --list --width=600 --height=460 --title=$"Select an Element." --text=$"Select one element that you want to translate or to update in an existing translation\n\nNote: If the percent value is not 100 but it is fully translated,\nthis may be due to errors like incorrectly written codes (like '\\\ n')\n" --column=$"Element" --column=$"Description" || echo cancel )"
+	ui_user_answered="$( cat "$tempfile" ${tempfile}_order_* | $guitool --list --width=600 --height=460 --title=$"Select an Element." --text=$"Select one element that you want to translate or to update in an existing translation\n\nNote: If the percent value is not 100 but it is fully translated,\nthis may be due to errors like incorrectly written codes (like '\\\ n')\n" --column=$"Element" --column=$"Description" || echo cancel )"
 	ui_answer_check
 
 	rm -f "$tempfile" "$tempfile2" ${tempfile}_order_*
@@ -586,7 +591,7 @@ translate_new(){
 	    clean_elive_dir
 	    ;;
 	*)
-	    translate_elive "$elivetransdir/$ui_user_answered"
+	    translate_elive "$translating_elive_d/$ui_user_answered"
 	    ;;
     esac
 }
@@ -608,7 +613,7 @@ main(){
     fi
 
     # replace all the "yes'ess" to bool check
-    if [[ "$only_e17" = "yes" ]] ; then
+    if [[ "$mode_only_e17_v" = "yes" ]] ; then
 	translate_new
 	exit 0
     fi
@@ -625,7 +630,7 @@ main(){
 ############################################################################
 #echo -e $"This is just a test message to see if that message translated works, ignore it"
 
-if ! [[ -f "$preferences" ]] ; then
+if ! [[ -f "$preferences_f" ]] ; then
     $guitool --info --text=$"You don't have any account configured for eltrans yet, you can create yourself an account at:"" http://www.elivecd.org/Help/Collaborate \n\n"$"You can enter your account information when you send your translation."
 fi
 
