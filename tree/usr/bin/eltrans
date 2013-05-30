@@ -20,6 +20,8 @@
 # remove reported issues in github
 # TODO: version of eltrans checker / dependency
 
+# TODO: disable e17 or do something, since its not in svn anymore
+
 source /usr/lib/elive-tools/functions
 el_make_environment
 TEXTDOMAIN="eltrans"
