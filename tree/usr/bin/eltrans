@@ -33,11 +33,11 @@ only_e17="no" # Warning: This option inhabilite the Elive translators part, set 
 
 ############################################################################
 ui_answer_check(){
-    if [[ "$resultado" = "cancel" ]] ; then
+    if [[ "$ui_user_answered" = "cancel" ]] ; then
 	exit 0
     fi
 
-    if [[ -z "$resultado" ]] ; then
+    if [[ -z "$ui_user_answered" ]] ; then
 	$guitool --error --text=$"Result null, please make a better choice"
 	main
 	exit
@@ -66,10 +66,10 @@ exit_ok(){
 speller_check(){
     if ! dpkg -l | grep "myspell-${1}" | grep -q "^ii" ; then
 	if $guitool --question --text=$"In order to make correct translations you are required to have the package 'myspell-${1}' installed in your system, it marks words in RED which may be wrong\n\nPress Ok to automatically install it now" ; then
-	    resultado="$( apt-cache search myspell-${1} | grep "^myspell" | $guitool --list --text=$"Select the appropriate dictionary package from this list." --column=$"Package" || echo cancel )"
+	    ui_user_answered="$( apt-cache search myspell-${1} | grep "^myspell" | $guitool --list --text=$"Select the appropriate dictionary package from this list." --column=$"Package" || echo cancel )"
 
-	    if [[ -n "$resultado" ]] && [[ "$resultado" != "cancel" ]] ; then
-		packagename="$(echo "$resultado" | awk '{print $1}')"
+	    if [[ -n "$ui_user_answered" ]] && [[ "$ui_user_answered" != "cancel" ]] ; then
+		packagename="$(echo "$ui_user_answered" | awk '{print $1}')"
 		# FIXME: use elive-tools
 		esu "$term -hold -e bash -c \"apt-get update && apt-get install -y ${packagename} && echo -e '\n\nFinished, close the window' \" "
 	    fi
@@ -88,13 +88,13 @@ edit_preferences(){
     oldpass="$( cat "$preferences" | grep password | sed 's/^.*:://g' )"
 
     $guitool --info --text=$"To collaborate with Elive making translations, you need to create yourself an account in http://www.elivecd.org/Help/Collaborate\n\nThanks a lot for your collaboration"
-    resultado="$( $guitool --entry --title=$"Elive Translator Account" --text=$"Enter the Username of your Elive translator account" --entry-text="$olduser" || echo cancel )"
+    ui_user_answered="$( $guitool --entry --title=$"Elive Translator Account" --text=$"Enter the Username of your Elive translator account" --entry-text="$olduser" || echo cancel )"
     ui_answer_check
-    newuser="$resultado"
+    newuser="$ui_user_answered"
 
-    resultado="$( $guitool --entry --title=$"Elive Translator Account" --text=$"Enter the Password of your Elive translator account" --entry-text="$oldpass" || echo cancel )"
+    ui_user_answered="$( $guitool --entry --title=$"Elive Translator Account" --text=$"Enter the Password of your Elive translator account" --entry-text="$oldpass" || echo cancel )"
     ui_answer_check
-    newpass="$resultado"
+    newpass="$ui_user_answered"
 
     echo -e "username::${newuser}\npassword::${newpass}" > "$preferences"
 
@@ -115,10 +115,10 @@ translate_elive(){
 
     $guitool --info --text=$"Important: You can also do translations in English. The English translations are the most important ones because it is the standard one where all the other translations come from, so it is imperitive they are correctly written (not in the <b>Tarzanic English</b> of the developer). In order to do English translations simply use the '<b>en</b>' value."
 
-    resultado="$( $guitool --entry --entry-text="${LANG%%_*}" --title=$"Select Language" --text=$"Select the language variant (locale) that you want to translate to, your system are using now the '${LANG%%_*}' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation, so, for you: '${LANG%%_*}'\n\nNote: You can do translations <b>to Englighs</b> too (clean English) using the 'en' value" || echo cancel )"
+    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title=$"Select Language" --text=$"Select the language variant (locale) that you want to translate to, your system are using now the '${LANG%%_*}' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation, so, for you: '${LANG%%_*}'\n\nNote: You can do translations <b>to Englighs</b> too (clean English) using the 'en' value" || echo cancel )"
 
     ui_answer_check
-    mylangdef="$resultado"
+    mylangdef="$ui_user_answered"
 
     verify_locale_supported "$mylangdef" translate_elive
 
@@ -328,19 +328,19 @@ translate_e17_new_language(){
 
     cd "${e17transdir}"
 
-    resultado="$( $guitool --entry --entry-text="${LANG%%_*}" --title=$"Select Language" --text=$"Select the language variant (locale) that you want to translate to, your system are using now the '${LANG%%_*}' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nNote: You can do translations to english too (clean english) using the 'en' value" || echo cancel )"
+    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title=$"Select Language" --text=$"Select the language variant (locale) that you want to translate to, your system are using now the '${LANG%%_*}' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nNote: You can do translations to english too (clean english) using the 'en' value" || echo cancel )"
 
     ui_answer_check
-    mylangdef="$resultado"
+    mylangdef="$ui_user_answered"
 
     verify_locale_supported "$mylangdef" translate_e17_new_language
     speller_check "$mylangdef"
 
     if [[ -f "$mye17transdir/${mylangdef}.pot" ]] ; then
-	resultado="$( $guitool --list --text=$"Old translation found. Select an option:" --column="" --column=$"Option" 1 $"Edit a previously made translation" 2 $"Remove it and create a new one" || echo cancel )"
+	ui_user_answered="$( $guitool --list --text=$"Old translation found. Select an option:" --column="" --column=$"Option" 1 $"Edit a previously made translation" 2 $"Remove it and create a new one" || echo cancel )"
 	ui_answer_check
 
-	case "$resultado" in
+	case "$ui_user_answered" in
 	    1)
 		#mv $mye17transdir/${mylangdef}.pot $mye17transdir/${mylangdef}.old.pot
 		msgmerge -U "$mye17transdir/${mylangdef}.pot" "$mye17transdir/enlightenment.pot"
@@ -427,10 +427,10 @@ verify_locale_supported(){
 }
 ############################################################################
 clean_elive_dir(){
-    resultado="$( $guitool --list --text=$"Select the option to remove your full translations directory or revert a previous commit (Important: If you have sent a wrong translation, you need to select this option)" --column=$"Option" --column=$"Description" "Purge" $"This option removes your full directory with your translations." "Revert" $"This option is to revert a wrongly sent translation." || echo cancel )"
+    ui_user_answered="$( $guitool --list --text=$"Select the option to remove your full translations directory or revert a previous commit (Important: If you have sent a wrong translation, you need to select this option)" --column=$"Option" --column=$"Description" "Purge" $"This option removes your full directory with your translations." "Revert" $"This option is to revert a wrongly sent translation." || echo cancel )"
     ui_answer_check
 
-    case "$resultado" in
+    case "$ui_user_answered" in
 	"Purge")
 	    rm -rf "$preferences"
 
@@ -498,7 +498,7 @@ count_messages_completed(){
 ############################################################################
 translate_new(){
     if [[ "$only_e17" = "yes" ]] ; then
-	resultado="Enlightenment 17"
+	ui_user_answered="Enlightenment 17"
     else
 	# TODO: dont use static names, use a generic variable
 	tempfile="/tmp/.${USER}-eltrans"
@@ -571,14 +571,14 @@ translate_new(){
 	    fi
 	done
 
-	resultado="$( cat $tempfile ${tempfile}_order_* | $guitool --list --width=600 --height=460 --title=$"Select an Element." --text=$"Select one element that you want to translate or to update in an existing translation\n\nNote: If the percent value is not 100 but it is fully translated,\nthis may be due to errors like incorrectly written codes (like '\\\ n')\n" --column=$"Element" --column=$"Description" || echo cancel )"
+	ui_user_answered="$( cat $tempfile ${tempfile}_order_* | $guitool --list --width=600 --height=460 --title=$"Select an Element." --text=$"Select one element that you want to translate or to update in an existing translation\n\nNote: If the percent value is not 100 but it is fully translated,\nthis may be due to errors like incorrectly written codes (like '\\\ n')\n" --column=$"Element" --column=$"Description" || echo cancel )"
 	ui_answer_check
 
 	rm -f "$tempfile" "$tempfile2" ${tempfile}_order_*
 
     fi
 
-    case "$resultado" in
+    case "$ui_user_answered" in
 	"Enlightenment 17")
 	    translate_e17_new_language
 	    ;;
@@ -586,7 +586,7 @@ translate_new(){
 	    clean_elive_dir
 	    ;;
 	*)
-	    translate_elive "$elivetransdir/$resultado"
+	    translate_elive "$elivetransdir/$ui_user_answered"
 	    ;;
     esac
 }
