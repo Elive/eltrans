@@ -133,15 +133,15 @@ translate_elive(){
 
     if [[ -f "$1/${language_user%%_*}.pot" ]] ; then
 	cp "$1/${language_user%%_*}.pot" "$1/tmp/base_translation.pot"
-	is_base_translation_avail=yes
+	is_base_translation_avail=1
     fi
 
     if [[ -f "$1/${language_user}.pot" ]] ; then
 	cp "$1/${language_user}.pot" "$1/tmp/base_translation.pot"
-	is_base_translation_avail=yes
+	is_base_translation_avail=1
     fi
 
-    if [[ "$is_base_translation_avail" = "yes" ]] ; then
+    if ((is_base_translation_avail)) ; then
 	msgmerge -o "$1/${language_user}.pot" "$1/tmp/base_translation.pot" "$1/default.pot"
     else
 	xgettext -s --language=PO --foreign-user --from-code utf-8 -o "$1/${language_user}.pot" "$1/default.pot"
@@ -232,10 +232,10 @@ commit_changes_elive(){
 
     for blklisted in "$( curl http://main.elivecd.org/tmp/blklisted-translators 2>/dev/null )"
     do
-	[[ "$pref_user_cached_v" = "$blklisted" ]] && blklist=yes
+	[[ "$pref_user_cached_v" = "$blklisted" ]] && is_blklist=1
     done
 
-    if [[ "$blklist" = "yes" ]] ; then
+    if ((is_blklist)) ; then
 	$term -e bash -c "sleep 1"
 	$guitool --info --text="Translation sent sucessfully, Thanks a lot for your collaboration, it can be reviewed soon and included directly on Elive the next time."
 
@@ -357,7 +357,7 @@ translate_e17_new_language(){
 		    sed -i "3a# \n# This translation was created/edited with the Elive translation tool" "$translating_e17_worked_d/${language_user}.pot"
 		fi
 
-		edited=yes
+		edited=1
 		;;
 	    2)
 		rm -f "$translating_e17_worked_d/${language_user}.pot"
@@ -366,20 +366,20 @@ translate_e17_new_language(){
 	esac
     fi
 
-    if ! [[ "$edited" = "yes" ]] ; then
+    if ! ((edited)) ; then
 
 	mkdir -p "$translating_e17_worked_d/tmp"
 
 	if [[ -f "${translating_e17_d}/svn/po/${language_user%%_*}.po" ]] ; then
 	    cp "${translating_e17_d}/svn/po/${language_user%%_*}.po" "$translating_e17_worked_d/tmp/base_translation.po"
-	    is_base_translation_avail=yes
+	    is_base_translation_avail=1
 	fi
 	if [[ -f "${translating_e17_d}/svn/po/${language_user}.po" ]] ; then
 	    cp "${translating_e17_d}/svn/po/${language_user}.po" "$translating_e17_worked_d/tmp/base_translation.po"
-	    is_base_translation_avail=yes
+	    is_base_translation_avail=1
 	fi
 
-	if [[ "$is_base_translation_avail" = "yes" ]] ; then
+	if ((is_base_translation_avail)) ; then
 	    msgmerge -o "$translating_e17_worked_d/${language_user}.pot" "$translating_e17_worked_d/tmp/base_translation.po" "$translating_e17_worked_d/enlightenment.pot"
 	else
 	    cp "$translating_e17_worked_d/enlightenment.pot" "$translating_e17_worked_d/${language_user}.pot"
@@ -466,7 +466,7 @@ translation_edit(){
 ############################################################################
 count_messages_completed(){
     # Well, somebody should document this function, it gives me a few headaches to think on it and I dont have time for it right now :P
-    unset count_less_than_v count_msg_all_v count_msg_all_null_v count_msg_no_v count_msg_no_null_v fuzzy_msgs_v count_percent_v
+    unset is_count_less_than count_msg_all_v count_msg_all_null_v count_msg_no_v count_msg_no_null_v fuzzy_msgs_v count_percent_v
 
     count_msg_all_v="$( cat "$1" | egrep "^msgid" | wc -l )"
 
@@ -490,12 +490,12 @@ count_messages_completed(){
     count_percent_v="$( echo -e "( ( $count_msg_no_v - $count_msg_no_null_v ) / ( $count_msg_all_v - $count_msg_all_null_v ) ) * 100" | bc -l )"
 
     if [[ "$(( $count_msg_all_v - $count_msg_all_null_v ))" -gt "$(( $count_msg_no_v - $count_msg_no_null_v ))" ]] ; then
-	count_less_than_v=yes
+	is_count_less_than=1
     fi
 
     count_percent_v="${count_percent_v%%.*}"
 
-    if [[ "$count_percent_v" = "100" ]] && [[ "$count_less_than_v" = "yes" ]] ; then
+    if [[ "$count_percent_v" = "100" ]] && ((is_count_less_than)) ; then
 	count_percent_v=99
     fi
 
