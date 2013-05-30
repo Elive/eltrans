@@ -8,6 +8,12 @@
 
 # FIXME: betatest everything, specially the e17 part
 
+# MIGRATION:
+# TODO: improve variablenames and funciontnames
+# TODO: put local variables where is needed, or make them better
+# TODO: add grammar checker tool (directly inside poedit hack? that could be easier to write)
+# TODO: version of eltrans checker / dependency
+
 source /usr/lib/elive-tools/functions
 el_make_environment
 TEXTDOMAIN="eltrans"
