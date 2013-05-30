@@ -10,6 +10,7 @@
 
 # MIGRATION:
 # TODO: improve variablenames and funciontnames
+# TODO: read the code searching bugs or bad structure
 # TODO: put local variables where is needed, or make them better
 # TODO: add grammar checker tool (directly inside poedit hack? that could be easier to write)
 # TODO: version of eltrans checker / dependency
