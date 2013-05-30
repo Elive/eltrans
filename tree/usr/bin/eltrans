@@ -77,9 +77,7 @@ edit_preferences(){
 
     olduser="$( cat "$preferences" | grep username | sed 's/^.*:://g' )"
     oldpass="$( cat "$preferences" | grep password | sed 's/^.*:://g' )"
-    $guitool --info --text=$"To collaborate with Elive making translations, you need to create yourself an account in http://www.elivecd.org/Help/Collaborate
-
-    Thanks a lot for your collaboration"
+    $guitool --info --text=$"To collaborate with Elive making translations, you need to create yourself an account in http://www.elivecd.org/Help/Collaborate \n\nThanks a lot for your collaboration"
     resultado="$( $guitool --entry --title=$"Elive Translator Account" --text=$"Enter the Username of your Elive translator account" --entry-text="$olduser" || echo cancel )"
     verifyresult
     newuser="$resultado"
@@ -181,13 +179,7 @@ try_translation_elive(){
 ############################################################################
 commit_changes_elive()
 {
-    if ! $guitool --question --text=$"Do you want to automatically send your translation to Elive that all the users can profit of your collaboration having its systems directly using your nice translation ?
-
-	Just create yourself an account at http://www.elivecd.org/Help/Collaborate
-
-	If you don't send it you can have a conflict with your translation made and the possible new version in the server. So it is recommended to send the translations as fast as possible after to edit them (max. one hour aprox.), do not wait to continue after with them, just send it and you can run again eltrans later to continue with a non-finished translation
-
-	    Note: For that is needed to use a correct grammar and verify all the messages before to send them" ; then
+    if ! $guitool --question --text=$"Do you want to automatically send your translation to Elive that all the users can profit of your collaboration having its systems directly using your nice translation ?\n\nJust create yourself an account at http://www.elivecd.org/Help/Collaborate \n\nIf you don't send it you can have a conflict with your translation made and the possible new version in the server. So it is recommended to send the translations as fast as possible after to edit them (max. one hour aprox.), do not wait to continue after with them, just send it and you can run again eltrans later to continue with a non-finished translation\n\nNote: For that is needed to use a correct grammar and verify all the messages before to send them" ; then
 	return
     fi
 
