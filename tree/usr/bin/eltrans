@@ -16,6 +16,7 @@
 # TODO: add grammar checker tool (directly inside poedit hack? that could be easier to write)
 # TODO: do not use $1 (et al) variables
 
+# remove reported issues in github
 # TODO: version of eltrans checker / dependency
 
 source /usr/lib/elive-tools/functions
