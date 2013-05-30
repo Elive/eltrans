@@ -20,7 +20,7 @@ TEXTDOMAIN="eltrans"
 export TEXTDOMAIN
 
 
-lugar="$(pwd)"
+pwd_orig="$(pwd)"
 poeditor=poeditor
 workingdir="$HOME/Projects/translations"
 e17transdir="${workingdir}/e17"
@@ -320,7 +320,7 @@ update_translations(){
 
     xgettext -C --foreign-user -k -k_ -kd_ -kD_ -o enlightenment.pot "$(find "${e17transdir}/svn" -name "*.[ch]" -print)" -p "$mye17transdir" --from-code utf-8
 
-    cd "$lugar"
+    cd "$pwd_orig"
 }
 ############################################################################
 translate_e17_new_language(){
