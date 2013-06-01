@@ -673,6 +673,10 @@ main(){
 	$guitool --error --text=$"Warning: This application doesn't work correctly in ubuntu"
     fi
 
+    if el_package_newer_check eltrans ; then
+	$guitool --info --text=$"There is a newer version of eltrans, please update it"
+    fi
+
     update_translations
 
     translate_new
