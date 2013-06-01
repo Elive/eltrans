@@ -87,8 +87,8 @@ speller_check(){
 
 	    if [[ -n "$ui_user_answered" ]] && [[ "$ui_user_answered" != "cancel" ]] ; then
 		packagename="$(echo "$ui_user_answered" | awk '{print $1}')"
-		# FIXME: use elive-tools
-		gksu "$term -hold -e bash -c \"apt-get update && apt-get install -y ${packagename} && echo -e '\n\nFinished, close the window' \" "
+		el_dependencies_install "$packagename"
+		#gksu "$term -hold -e bash -c \"apt-get update && apt-get install -y ${packagename} && echo -e '\n\nFinished, close the window' \" "
 	    fi
 	else
 	    notify-send -t 6000 $"Warning: Not using speller"
@@ -181,11 +181,11 @@ translate_elive(){
     rm -f "$_tr_app_d/${language_user}.mo"
 
     # TODO: improve that crap
-    try_translation_elive "$( basename $_tr_app_d )" "$_tr_app_d/${language_user}.pot" "$language_user"
+    translation_elive_install "$( basename $_tr_app_d )" "$_tr_app_d/${language_user}.pot" "$language_user"
     commit_changes_elive "$( basename $_tr_app_d )" "${language_user}.pot" "$_tr_app_d" "${language_user}"
 }
 ############################################################################
-try_translation_elive(){
+translation_elive_install(){
     local _tr_app _tr_pot _tr_lang
     _tr_app="$1"
     _tr_pot="$2"
@@ -253,7 +253,6 @@ commit_changes_elive(){
     if [[ -s "/tmp/.${USER}-eltrans-logs" ]]; then
 	$guitool --info --text=$"I have found Warnings or Errors in your translation, please read them carefully and try to fix the problem manually. You've got a window open with the details of these errors. These messages include in the first field the exact number of the line of the problem. Enable line-number visualization in the editor if it is not enabled."
 
-	# FIXME: scite?
 	scite "$_tr_pot_f"
     fi
     #}
@@ -437,10 +436,10 @@ translate_e17_new_language(){
 
     rm -f "$translating_e17_worked_d/${language_user}.mo"
 
-    try_translation_e17 "$translating_e17_worked_d/${language_user}.pot"
+    translation_e17_install "$translating_e17_worked_d/${language_user}.pot"
 }
 ############################################################################
-try_translation_e17(){
+translation_e17_install(){
     local _translated_pot
     _translated_pot="$1"
     el_check_variables "_translated_pot"
@@ -512,7 +511,7 @@ clean_elive_dir(){
 	#sed -i "3a# \n# This translator was created/edited with the Elive translation tool" "$1"
     #fi
 
-    #try_translation_e17 "$1"
+    #translation_e17_install "$1"
 #}
 ############################################################################
 count_messages_completed(){
@@ -575,8 +574,8 @@ translate_new(){
 	echo -e "Clean" >> "$tempfile"
 	echo -e $"Remove your Translations Directory, avoiding possible Errors or Conflicts." >> "$tempfile"
 
-	echo -e "Enlightenment 17" >> "$tempfile"
-	echo -e $"Basically, your Desktop and Graphical interface/system." >> "$tempfile"
+	#echo -e "Enlightenment 17" >> "$tempfile"
+	#echo -e $"Basically, your Desktop and Graphical interface/system." >> "$tempfile"
 
 	for item_v in ${translating_d}/elive/*
 	do
@@ -590,15 +589,6 @@ translate_new(){
 
 		    [[ -f "$item_v/${LANG%%_*}.pot" ]] && item_lang_v="${LANG%%_*}"
 		    [[ -f "$item_v/${LANG%%.*}.pot" ]] && item_lang_v="${LANG%%.*}"
-
-		    # blacklist liveboot for some languages
-		    if [[ "$tr_name_v" = "liveboot" ]] ; then
-			# XXX Note: these blacklisted values depends too of the blacklisted ones in elive-building-suite (removing the generated .mo files)
-			# FIXME : values
-			if echo "${item_lang_v}" | grep -qE "(ar*|bg*|hr*|cs*|el*|iw*|hi*|ja*|lv*|lt*|no*|pl*|pt*|ro*|ru*|sk*|sl*|sv*|uk*|vi*)" ; then
-			    continue
-			fi
-		    fi
 
 
 		    if [[ -z "$item_lang_v" ]]; then
