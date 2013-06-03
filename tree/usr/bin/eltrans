@@ -13,6 +13,12 @@
 # TODO: check all the variables before to use them
 # TODO: add grammar checker tool (directly inside poedit hack? that could be easier to write)
 
+# TODO: update Project-Id-Version value
+# TODO: add a version thing system with migration system included
+# TODO: make obsolete the old translations system
+# TODO: need to change to .po/.pot ? (t = template)/
+# TODO: add a system of "percentage of grammar completed" (in the description.txt maybe)
+
 # remove reported issues in github
 
 source /usr/lib/elive-tools/functions
@@ -28,12 +34,17 @@ translating_e17_d="${translating_d}/e17"
 translating_elive_d="${translating_d}/elive"
 translating_e17_worked_d="${translating_e17_d}/my_translations"
 preferences_f="$HOME/.eltrans/account"
-tempfile="/tmp/.${USER}-eltrans-$$"
-logs_err="/tmp/.${USER}-eltrans-logs-err"
-temp_mo="/tmp/.${USER}-eltrans-motemp.mo"
+tempdir="/tmp/.${USER}-eltrans"
+tempfile="${tempdir}/tempfile-$$"
+logs_err="${tempdir}/logs-err.txt"
+temp_mo="${tempdir}/motemp.mo"
+temp_script="${tempdir}/script.sh"
 : ${guitool=zenity}
 export guitool
 mode_only_e17_v="no" # Warning: This option inhabilite the Elive translators part, set it to "yes" if you want to use this tool ONLY for Enlightenment 17 translations
+
+rm -rf "${tempdir}"
+mkdir -p "${tempdir}"
 
 ############################################################################
 ui_answer_check(){
@@ -66,7 +77,7 @@ exit_ok(){
     local message
     message="$1"
 
-    if [[ -z "$message" ]] ; then
+    if [[ -n "$message" ]] ; then
 	$guitool --error --text="$message"
     fi
 
@@ -75,27 +86,55 @@ exit_ok(){
     exit 0
 }
 ############################################################################
-speller_check(){
+dependencies_install(){
     el_debug
 
-    local packagename _lang
+    local packagename _lang dependencies
     _lang="$1"
 
     el_check_variables "_lang"
 
-    if ! dpkg -l | grep "myspell-${_lang}" | grep -q "^ii" ; then
-	if $guitool --question --text=$"In order to make correct translations you are required to have the package 'myspell-${_lang}' installed in your system, it marks words in RED which may be wrong\n\nPress Ok to automatically install it now" ; then
-	    ui_user_answered="$( apt-cache search myspell-${_lang} | grep "^myspell" | $guitool --list --text=$"Select the appropriate dictionary package from this list." --column=$"Package" || echo cancel )"
 
-	    if [[ -n "$ui_user_answered" ]] && [[ "$ui_user_answered" != "cancel" ]] ; then
-		packagename="$(echo "$ui_user_answered" | awk '{print $1}')"
-		el_dependencies_install "$packagename"
-		#gksu "$term -hold -e bash -c \"apt-get update && apt-get install -y ${packagename} && echo -e '\n\nFinished, close the window' \" "
-	    fi
-	else
-	    notify-send -t 6000 $"Warning: Not using speller"
+    # check and add dependencies to install
+    if ! el_dependencies_check "svn" ; then
+	el_array_member_add "subversion" "${dependencies[@]}" ; dependencies=("${_out[@]}")
+    fi
+
+    if ! el_dependencies_check "xgettext" ; then
+	el_array_member_add "gettext" "${dependencies[@]}" ; dependencies=("${_out[@]}")
+    fi
+
+    if ! el_dependencies_check "scite" ; then
+	el_array_member_add "scite" "${dependencies[@]}" ; dependencies=("${_out[@]}")
+    fi
+
+    if ! el_dependencies_check "languagetool" ; then
+	el_array_member_add "languagetool" "${dependencies[@]}" ; dependencies=("${_out[@]}")
+    fi
+    if ! el_dependencies_check "poedit" ; then
+	el_array_member_add "poedit" "${dependencies[@]}" ; dependencies=("${_out[@]}")
+    fi
+
+    # spell package
+    # FIXME: wee need to add something in our conf file to say "yes, it is already installed", this check is not enough
+    if ! dpkg -l | grep "myspell-${_lang}" | grep -q "^ii" ; then
+
+	ui_user_answered="$( apt-cache search myspell-${_lang} | grep "^myspell" | $guitool --list --text=$"Select the appropriate dictionary package from this list." --column=$"Package" || echo cancel )"
+
+	if [[ -n "$ui_user_answered" ]] && [[ "$ui_user_answered" != "cancel" ]] ; then
+	    packagename="$(echo "$ui_user_answered" | awk '{print $1}')"
+	    el_array_member_add "$packagename" "${dependencies[@]}" ; dependencies=("${_out[@]}")
 	fi
     fi
+
+
+    # install dependencies if any needed
+    if [[ -n "${dependencies[@]}" ]] ; then
+	el_explain 0 "installing dependencies: __${dependencies[@]}__"
+	$guitool --info --text=$"We need to install a few dependencies first:"" ${dependencies[@]}"
+	el_dependencies_install "${dependencies[@]}"
+    fi
+
 }
 
 ############################################################################
@@ -153,7 +192,12 @@ translate_elive(){
     el_check_variables "language_user"
     verify_locale_supported "$language_user" translate_elive
 
-    speller_check "$language_user"
+    dependencies_install "$language_user"
+
+    # run extra apps
+    if ! ps aux | grep -q "java.*languagetool.*tray" ; then
+	languagetool --tray &
+    fi
 
     mkdir -p "$_tr_app_d/tmp"
 
@@ -184,6 +228,9 @@ translate_elive(){
     else
 	notify-send -t 100000 $"Tip: For moving more faster to the next message, press TAB, the down-arrow, and TAB again"
     fi
+
+    # for the translator tools
+    #sed -e '/"Project-Id-Version: /s|Version:.*$|Version: 1\\n"|g'
 
     el_check_variables "app_poeditor"
     "$app_poeditor" "$_tr_app_d/${language_user}.pot"
@@ -241,7 +288,7 @@ commit_changes_elive(){
     el_check_variables "_tr_pot_f"
     el_check_files "$_tr_pot_f"
 
-    if ! $guitool --question --text=$"To send your translation to Elive is an automated process, on that way everybody can profit of your translation on their Elive too\n\nJust create yourself an account at http://www.elivecd.org/Help/Collaborate\n\nNote that if you wait too much for send it and another person works on the same one, your translation can be uncompatible due to a conflict in the file, so its a good practice to send updated version from time to time instead of wait that you finish entirely the translation, only the translated messages will be included on the application\n\nFinally, only send them if the grammar is correctly used, even change the wording in the english version if you found it required" ; then
+    if ! $guitool --question --text=$"To send your translation to Elive is an automated process, on that way everybody can profit of your translation on their Elive too\n\nJust create yourself an account at http://www.elivecd.org/Help/Collaborate\n\nNote that if you wait too much for send it and another person works on the same one, your translation can be uncompatible due to a conflict in the file, so its a good practice to send updated version from time to time instead of wait that you finish entirely the translation, only the translated messages will be included on the application\n\nFinally, only send them if the grammar is correctly used, even change the wording in the english version if you found it required\n\nSend translations now?" ; then
 	return
     fi
 
@@ -266,6 +313,7 @@ commit_changes_elive(){
 	$guitool --info --text=$"I have found Warnings or Errors in your translation, please read them carefully and try to fix the problem manually. You've got a window open with the details of these errors. These messages include in the first field the exact number of the line of the problem. Enable line-number visualization in the editor if it is not enabled."
 
 	cat "${logs_err}" | $guitool --text-info --width=650 --height=400 &
+	rm -f "${logs_err}"
 
 	scite "$_tr_pot_f"
     fi
@@ -285,8 +333,26 @@ commit_changes_elive(){
 	$guitool --info --text="Translation sent sucessfully, Thanks a lot for your collaboration, it can be reviewed soon and included directly on Elive the next time."
 
     else
-	$term -e bash -c "if svn commit --username \"$pref_user_cached_v\" --password \"$pref_pass_cached_v\" -m \"Eltrans auto:  |${_tr_app}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'\" ; then sleep 1 ; $guitool --info --text=\"Translation sent sucessfully, Thanks a lot for your collaboration, it can be reviewed soon and included directly on Elive the next time. You can check it directly at http://dev.elivecd.org/timeline, apart to use the features of the site like watch other translations, diff them, recover an old translation, etc...\" ; else $guitool --error --text=\"Error sending your translation, if you are using a Wrong Username or Password for the send please remove the file $preferences_f, otherwise the better solution is to remove your full translations project dir $translating_elive_d and run the 'clean' or 'purge' option of eltrans. You can backup before your translated file and compare it with the 'meld' tool \" ; fi"
+	cat > "${temp_script}" << EOF
+#!/bin/bash
 
+if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans auto:  |${_tr_app}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}"  ; then
+    sleep 1
+    $guitool --info --text=$"Translation sent sucessfully. Thanks a lot for your collaboration, it can be reviewed soon and included directly on Elive the next time. You can see it directly at http://dev.elivecd.org/timeline, you can watch other translations made by someone else, who made it, diff them, recover an older translation, etc"
+
+else
+    $guitool --error --text="Error sending your translation, if you are using a Wrong Username or Password for the send please remove the file '$preferences_f', otherwise the better solution is to remove your full translations project dir '$translating_elive_d' and run the 'clean' or 'purge' option of eltrans. You can backup before your translated file and compare it with the 'meld' tool "
+fi
+EOF
+	chmod +x "${temp_script}"
+	$term -e "${temp_script}"
+	rm -f "${temp_script}"
+
+	if [[ -s "${logs_err}" ]]; then
+	    cat "${logs_err}" | $guitool --text-info --width=650 --height=400
+	    rm -f "${logs_err}"
+	    exit_ok
+	fi
     fi
 
     update_translations
@@ -321,7 +387,25 @@ add_translations_dir_elive(){
     cd "$translating_d"
     rm -rf elive
 
-    $term -e bash -c "echo 'Downloading translations...' ; svn --username ${pref_user_cached_v} --password ${pref_pass_cached_v} co svn://dev.elivecd.org/translations elive || { sleep 6 ; $guitool --error --text=\"Error downloading the translations of Elive, please try again later or remove your directory Projects/translations\" ; } ; sleep 2 "
+    cat > "${temp_script}" << EOF
+#!/bin/bash
+echo 'Downloading translations...'
+
+svn --non-interactive --username "${pref_user_cached_v}" --password "${pref_pass_cached_v}" co svn://dev.elivecd.org/translations elive 2>"${logs_err}"
+sleep 2
+EOF
+    chmod +x "${temp_script}"
+    $term -e "${temp_script}"
+    rm -f "${temp_script}"
+
+    if [[ -s "${logs_err}" ]]; then
+	$guitool --error --text=$"Error downloading the translations of Elive, check the reported message, try again later or remove your directory of translations in Projects/translations"
+	cat "${logs_err}" | $guitool --text-info --width=650 --height=400
+	rm -f "${logs_err}"
+
+	preferences_edit
+	$FUNCNAME
+    fi
 
 }
 ############################################################################
@@ -347,15 +431,29 @@ update_translations(){
 	    rm -rf "/tmp/${USER}-translations-eltrans"
 	    cp -r "${translating_d}/elive" "/tmp/${USER}-translations-eltrans"
 
-	    $term -e bash -c "echo 'Cleaning...' ; svn cleanup "
-	    $term -e bash -c "echo 'Updating...' ; svn update --username ${pref_user_cached_v} --password ${pref_pass_cached_v} --accept theirs-full 2>&1 | tee ${logs_err} ; sleep 1 "
+	    cat > "${temp_script}" << EOF
+#!/bin/bash
+echo "Cleaning..."
+svn cleanup
+echo
 
-	    if ! svn update ; then
-		# clean it up if something has failed
-		cd ../../
-		add_translations_dir_elive
-	    fi
+echo "Updating..."
+LC_ALL=C svn update --non-interactive --username "${pref_user_cached_v}" --password "${pref_pass_cached_v}" --accept theirs-full 2>&1 | tee "${logs_err}"
 
+sleep 3
+EOF
+	    chmod +x "${temp_script}"
+	    $term -e "${temp_script}"
+	    rm -f "${temp_script}"
+
+
+	    #if ! svn update ; then
+		## clean it up if something has failed
+		#cd ../../
+		#add_translations_dir_elive
+	    #fi
+
+	    # note: logs_err are not errors really but mostly messages to parse
 	    if grep -q "^G " "${logs_err}" ; then
 
 		conflicted_file_f="$( grep "^G " "${logs_err}" | awk '{print $2}' | tr '\n' ' ')"
@@ -393,7 +491,7 @@ translate_e17_new_language(){
     language_user="$ui_user_answered"
 
     verify_locale_supported "$language_user" translate_e17_new_language
-    speller_check "$language_user"
+    dependencies_install "$language_user"
 
     if [[ -f "$translating_e17_worked_d/${language_user}.pot" ]] ; then
 	ui_user_answered="$( $guitool --list --text=$"Old translation found. Select an option:" --column="" --column=$"Option" 1 $"Edit a previously made translation" 2 $"Remove it and create a new one" || echo cancel )"
@@ -693,7 +791,7 @@ main(){
 	exit 1
     fi
 
-    if ! el_dependencies_check "poedit,svn,zenity,xgettext,scite" ; then
+    if ! el_dependencies_check "zenity,xgettext,scite" ; then
 	el_error "Missing dependencies"
 	exit 1
     fi
@@ -721,9 +819,10 @@ main(){
     if [[ -f "$preferences_f" ]] ; then
 	config_get
     else
-	$guitool --info --text=$"You need an eltrans account for make translations, please create it first" &
+	precache /etc/alternatives/x-www-browser "http://www.elivecd.org/Help/Collaborate" &
+	$guitool --info --text=$"You need an eltrans account for make translations, please create it first"
 	/etc/alternatives/x-www-browser "http://www.elivecd.org/Help/Collaborate" &
-	sleep 10
+	sleep 14
 	preferences_edit
     fi
 
