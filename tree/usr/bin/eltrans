@@ -196,7 +196,7 @@ translate_elive(){
 
     # run extra apps
     if ! ps aux | grep -q "java.*languagetool.*tray" ; then
-	languagetool --tray &
+	languagetool-tray &
     fi
 
     mkdir -p "$_tr_app_d/tmp"
@@ -382,6 +382,8 @@ add_translations_dir_elive(){
     el_debug
 
     el_check_variables "translating_d"
+
+    dependencies_install "${LANG%%_*}"
 
     mkdir -p "$translating_d"
     cd "$translating_d"
@@ -791,9 +793,8 @@ main(){
 	exit 1
     fi
 
-    if ! el_dependencies_check "zenity,xgettext,scite" ; then
-	el_error "Missing dependencies"
-	exit 1
+    if ! el_dependencies_check "zenity" ; then
+	el_dependencies_install "zenity"
     fi
 
     #if [[ "$mode_only_e17_v" = "yes" ]] ; then
