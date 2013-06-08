@@ -294,7 +294,7 @@ translation_elive_install(){
     el_check_variables "_tr_lang,_tr_pot,_tr_app"
     el_check_files "${_tr_pot}"
 
-    if $guitool --question --text=$"Do you want to use your translation in your system now ?" ; then
+    if $guitool --question --text=$"Do you want to use your translation in your system now ? It is strongly suggested to test yourself the made translations before to send them to Elive in order to check that works without problems." ; then
 
 	if ! [[ -d "/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES" ]] ; then
 	    gksu "mkdir -p /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES"
