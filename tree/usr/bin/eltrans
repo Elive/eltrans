@@ -261,6 +261,10 @@ translate_elive(){
 	#notify-send -t 100000 $"Tip: For moving more faster to the next message, press TAB, the down-arrow, and TAB again"
     fi
 
+    #
+    # HOOKS pre
+    #
+
     # for the translator tools
     _tr_package_version_v="$( grep "Project-Id-Version: " "${_tr_app_d}/default.pot" | sed -e 's|^.*Version: ||g' -e 's|\\n.*$||g' | head -1 | grep "[[:digit:]]" )"
     : ${_tr_app_d:="1.0"}
@@ -270,7 +274,18 @@ translate_elive(){
     instructions_show
     sleep 1
 
+    #
+    # FIXES pre
+    #
+    sed -i '/msgstr ""[^[:blank:]]/s|msgstr ""*|msgstr "|g' "$_tr_app_d/${language_user}.pot"
+
+    # run poedit
     "$app_poeditor" "$_tr_app_d/${language_user}.pot"
+
+    #
+    # FIXES post
+    #
+    sed -i '/msgstr ""[^[:blank:]]/s|msgstr ""*|msgstr "|g' "$_tr_app_d/${language_user}.pot"
 
     # why fuck always all the applications are buggy ? im tired to fix things everywhere
     sed -i "/\"Project-Id-Version: /s|^.*Version:.*$|Version: ${_tr_package_version_v}\\\n\"|g" "$_tr_app_d/${language_user}.pot"
