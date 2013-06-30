@@ -207,7 +207,7 @@ preferences_edit(){
 ############################################################################
 select_language(){
     #$guitool --info --text=$"Important: You can also do translations in English. The English translations are the most important ones because it is the standard one where all the other translations come from, so it is imperitive they are correctly written (not in the <b>Tarzanic English</b> of the developer). In order to do English translations simply use the '<b>en</b>' value."
-    $guitool --info --text=$"Important: Original sentences from the applications are possibly not made by native english speakers, they are also not focused on using the perfect grammar and wording for the messages, if you have good english skills please improve the english of the messages first because they are more important than any other translation, so all of them are based on the english ones, messages needs to be short, direct and clearly understandable."
+    $guitool --info --text=$"Important: Original sentences from the applications are possibly not made by native english speakers, they are also not focused on using the perfect grammar and wording for the messages, if you have good english skills <b>please improve the english</b> of the messages first because they are more important than any other translation, so all of them are based on the english ones, messages needs to be short, direct and clearly understandable."
 
     ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title=$"Select Language" --text=$"Select the language variant (locale) that you want to translate to, your system is now set to the '${LANG%%_*}' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nFor improve the original English messages use the 'en' value" || echo cancel )"
 
@@ -218,6 +218,10 @@ select_language(){
     verify_locale_supported "$language_user" select_language
 
     dependencies_install "$language_user"
+
+    if [[ "$language_user" = "en" ]] ; then
+	$guitool --info --text=$"Thanks for collaborating in the proofreading of the messages, you will have in your systray a grammar checker tool, if you think that the original messages are not correctly spelled or not giving the correct information to the user in order to be correctly understood, feel free to improve it, if you don't understand what the messages means you can enter in the IRC chat channel and ask to the developers about their meaning, for example ask to Thanatermesis or PrinceAMD."
+    fi
 
 }
 ############################################################################
