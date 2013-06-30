@@ -267,6 +267,15 @@ translate_elive(){
 
     rm -rf "$_tr_app_d/tmp"
 
+
+    # count english proofreading
+    count_messages_completed "$_tr_app_d/en.pot"
+
+    if [[ "$count_percent_v" -lt "85" ]] ; then
+	$guitool --warning --text=$"This translation has less than the 85% of the messages proofreaded. If you have english skills please proofread it first, otherwise we suggest to translate another application instead for now, otherwise you risk to do the translation twice since the proofreading could change the sentences to new ones."
+    fi
+
+
     count_messages_completed "$_tr_app_d/${language_user}.pot"
 
     if [[ "$fuzzy_msgs_v" -ge "10" ]] ; then
@@ -685,7 +694,7 @@ verify_locale_supported(){
 clean_elive_dir(){
     el_debug
 
-    ui_user_answered="$( $guitool --list --text=$"Select the option to remove your full translations directory or revert a previous commit (Important: If you have sent a wrong translation, you need to select this option)" --column=$"Option" --column=$"Description" "Purge" $"This option removes your full directory with your translations." "Revert" $"This option is to revert a wrongly sent translation." || echo cancel )"
+    ui_user_answered="$( $guitool --list --width=400 --height=400 --text=$"Select the option to remove your full translations directory or revert a previous commit (Important: If you have sent a wrong translation, you need to select this option)" --column=$"Option" --column=$"Description" "Purge" $"This option removes your full directory with your translations." "Revert" $"This option is to revert a wrongly sent translation." || echo cancel )"
     ui_answer_check
 
     case "$ui_user_answered" in
@@ -762,7 +771,7 @@ count_messages_completed(){
     count_percent_v="${count_percent_v%%.*}"
 
     if [[ "$count_percent_v" = "100" ]] && ((is_count_less_than)) ; then
-	count_percent_v=99
+	count_percent_v="99"
     fi
 
     fuzzy_msgs_v="$( cat "$_tr_pot" | awk -v FS="\n" -v RS="" '{ if ($1 == "#, fuzzy") if ($2 ~ "^msgid ") print $1 }' | wc -l )"
@@ -830,32 +839,37 @@ translate_new(){
 		    tr_description_v=$"NEW: ${tr_description_v} - 0 % completed"
 
 		else
+		    count_messages_completed "${item_v}/en.pot" "$item_v"
+		    count_percent_proofreaded_v="$count_percent_v"
+
 		    count_messages_completed "${item_v}/${item_lang_v}.pot" "$item_v"
 
+		    # fixed needed?
 		    if [[ "${count_percent_v}" -ge "100" ]] ; then
 			msgmerge --no-wrap -w 20000000 -U "$item_v/${item_lang_v}.pot" "$item_v/default.pot" 2>/dev/null 1>&2
 			#mv $item_v/${item_lang_v}.tmp.pot $item_v/${item_lang_v}.pot
 			count_messages_completed "$item_v/${item_lang_v}.pot" "$item_v"
 		    fi
+
 		    # Normal description set for different percentages
 		    if [[ "${count_percent_v}" = "100" ]] ; then
-			tr_description_v=$"- Completed - Translation is not needed in the '${item_lang_v}' language."
+			tr_description_v=$"- Completed - Translation is not needed in the '${item_lang_v}' language, ${count_percent_proofreaded_v}% Proofreaded (en)."
 			item_order_v=8
 		    else
-			tr_description_v="${tr_description_v} - ${count_percent_v} %"$" completed (${item_lang_v})"
+			tr_description_v="${tr_description_v} - ${count_percent_v}%"$" completed (${item_lang_v}), ${count_percent_proofreaded_v}% Proofreaded (en)"
 			item_order_v=2
 		    fi
 
 		    # If is fuzzy
 		    if [[ "$fuzzy_msgs_v" -ge "1" ]] && [[ "$count_percent_v" = "100" ]] ; then
-			tr_description_v=$"Needs ${fuzzy_msgs_v} corrections (${item_lang_v}) "
+			tr_description_v=$"Needs ${fuzzy_msgs_v} corrections (${item_lang_v}), ${count_percent_proofreaded_v}% Proofreaded (en)"
 			item_order_v=4
 		    fi
 		fi
 
 
 		if [[ -n "$tr_description_v" ]]; then
-		    echo -e "${tr_name_v}\n${tr_description_v}" >> "${tempfile}_order_${item_order_v}_${count_percent_v}"
+		    echo -e "${tr_name_v}\n${tr_description_v}" >> "${tempfile}_order_${item_order_v}_${count_percent_proofreaded_v}_${count_percent_v}"
 		fi
 
 		fi
@@ -865,7 +879,7 @@ translate_new(){
 
 
 	el_check_files "$tempfile"
-	ui_user_answered="$( cat "$tempfile" ${tempfile}_order_* | $guitool --list --width=600 --height=460 --title=$"Select an Element." --text=$"Select one element that you want to translate or to update in an existing translation" --column=$"Element" --column=$"Description" || echo cancel )"
+	ui_user_answered="$( cat "$tempfile" ${tempfile}_order_* | $guitool --list --width=780 --height=460 --title=$"Select an Element." --text=$"Select one element that you want to translate or to update in an existing translation" --column=$"Element" --column=$"Description" || echo cancel )"
 	ui_answer_check
 
 	rm -f "$tempfile" ${tempfile}_order_*
