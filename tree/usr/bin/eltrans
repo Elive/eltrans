@@ -205,6 +205,22 @@ preferences_edit(){
     fi
 }
 ############################################################################
+select_language(){
+    #$guitool --info --text=$"Important: You can also do translations in English. The English translations are the most important ones because it is the standard one where all the other translations come from, so it is imperitive they are correctly written (not in the <b>Tarzanic English</b> of the developer). In order to do English translations simply use the '<b>en</b>' value."
+    $guitool --info --text=$"Important: Original sentences from the applications are possibly not made by native english speakers, they are also not focused on using the perfect grammar and wording for the messages, if you have good english skills please improve the english of the messages first because they are more important than any other translation, so all of them are based on the english ones, messages needs to be short, direct and clearly understandable."
+
+    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title=$"Select Language" --text=$"Select the language variant (locale) that you want to translate to, your system is now set to the '${LANG%%_*}' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nFor improve the original English messages use the 'en' value" || echo cancel )"
+
+    ui_answer_check
+    language_user="$ui_user_answered"
+
+    el_check_variables "language_user"
+    verify_locale_supported "$language_user" select_language
+
+    dependencies_install "$language_user"
+
+}
+############################################################################
 translate_elive(){
     el_debug
 
@@ -219,18 +235,6 @@ translate_elive(){
     fi
 
     cd "$_tr_app_d"
-
-    $guitool --info --text=$"Important: You can also do translations in English. The English translations are the most important ones because it is the standard one where all the other translations come from, so it is imperitive they are correctly written (not in the <b>Tarzanic English</b> of the developer). In order to do English translations simply use the '<b>en</b>' value."
-
-    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title=$"Select Language" --text=$"Select the language variant (locale) that you want to translate to, your system is now set to the '${LANG%%_*}' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nFor improve the original English messages use the 'en' value" || echo cancel )"
-
-    ui_answer_check
-    language_user="$ui_user_answered"
-
-    el_check_variables "language_user"
-    verify_locale_supported "$language_user" translate_elive
-
-    dependencies_install "$language_user"
 
     # run extra apps
     if ! ps aux | grep -v grep | grep -q "java.*languagetool.*tray" ; then
@@ -810,8 +814,9 @@ translate_new(){
 
 
 		# preselect lang files to use
-		[[ -f "$item_v/${LANG%%_*}.pot" ]] && item_lang_v="${LANG%%_*}"
-		[[ -f "$item_v/${LANG%%.*}.pot" ]] && item_lang_v="${LANG%%.*}"
+		#[[ -f "$item_v/${LANG%%_*}.pot" ]] && item_lang_v="${LANG%%_*}"
+		#[[ -f "$item_v/${LANG%%.*}.pot" ]] && item_lang_v="${LANG%%.*}"
+		item_lang_v="$language_user"
 
 
 		if [[ -z "$item_lang_v" ]]; then
@@ -922,6 +927,8 @@ main(){
 
 
     # We start here
+
+    select_language
 
     update_translations
 
