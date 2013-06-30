@@ -281,8 +281,11 @@ translate_elive(){
 
     sed -i "/\"Project-Id-Version: /s|^.*Version:.*$|Project-Id-Version: ${_tr_package_version_v}\\\n\"|g" "$_tr_app_d/${language_user}.pot"
 
-    instructions_show
-    sleep 1
+    if ! ((is_instructions_show)) ; then
+	instructions_show
+	is_instructions_show=1
+	sleep 1
+    fi
 
     #
     # FIXES pre
