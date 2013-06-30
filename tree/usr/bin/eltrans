@@ -160,6 +160,7 @@ Grammar Checks:
 For check the correct grammar (very important), you can do it in a fast way using this procedure:
 - Press 'Ctrl + a, Ctrl + c' for copy the text on the box
 - Click in the 'LT' icon in the systray for do the grammar check
+- Press 'Ctrl + Alt + x' for close the window
 
 Suggestion: use the 'detect language' option by default
 
