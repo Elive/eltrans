@@ -283,7 +283,7 @@ translate_elive(){
     _tr_package_version_v="$( grep "Project-Id-Version: " "${_tr_app_d}/default.pot" | sed -e 's|^.*Version: ||g' -e 's|\\n.*$||g' | head -1 | grep "[[:digit:]]" )"
     : ${_tr_app_d:="1.0"}
 
-    sed -i "/\"Project-Id-Version: /s|^.*Version:.*$|Project-Id-Version: ${_tr_package_version_v}\\\n\"|g" "$_tr_app_d/${language_user}.pot"
+    sed -i "/\"Project-Id-Version: /s|^.*Version:.*$|\"Project-Id-Version: ${_tr_package_version_v}\\\n\"|g" "$_tr_app_d/${language_user}.pot"
 
     if ! ((is_instructions_show)) ; then
 	instructions_show
@@ -305,7 +305,7 @@ translate_elive(){
     sed -i '/msgstr ""[^[:blank:]]/s|msgstr ""*|msgstr "|g' "$_tr_app_d/${language_user}.pot"
 
     # why fuck always all the applications are buggy ? im tired to fix things everywhere
-    sed -i "/\"Project-Id-Version: /s|^.*Version:.*$|Project-Id-Version: ${_tr_package_version_v}\\\n\"|g" "$_tr_app_d/${language_user}.pot"
+    sed -i "/\"Project-Id-Version: /s|^.*Version:.*$|\"Project-Id-Version: ${_tr_package_version_v}\\\n\"|g" "$_tr_app_d/${language_user}.pot"
 
     # remove wraps
     msgattrib --no-wrap -w 20000000 -o "$_tr_app_d/${language_user}-new.pot" "$_tr_app_d/${language_user}.pot"
