@@ -841,6 +841,7 @@ translate_new(){
 		else
 		    count_messages_completed "${item_v}/en.pot" "$item_v"
 		    count_percent_proofreaded_v="$count_percent_v"
+		    count_percent_proofreaded_inverse_v="$(( 100 - ${count_percent_proofreaded_v} ))"
 
 		    count_messages_completed "${item_v}/${item_lang_v}.pot" "$item_v"
 
@@ -869,7 +870,7 @@ translate_new(){
 
 
 		if [[ -n "$tr_description_v" ]]; then
-		    echo -e "${tr_name_v}\n${tr_description_v}" >> "${tempfile}_order_${item_order_v}_${count_percent_proofreaded_v}_${count_percent_v}"
+		    echo -e "${tr_name_v}\n${tr_description_v}" >> "${tempfile}_order_${item_order_v}_${count_percent_proofreaded_inverse_v}_${count_percent_v}"
 		fi
 
 		fi
@@ -879,7 +880,7 @@ translate_new(){
 
 
 	el_check_files "$tempfile"
-	ui_user_answered="$( cat "$tempfile" ${tempfile}_order_* | $guitool --list --width=780 --height=460 --title=$"Select an Element." --text=$"Select one element that you want to translate or to update in an existing translation" --column=$"Element" --column=$"Description" || echo cancel )"
+	ui_user_answered="$( cat "$tempfile" ${tempfile}_order_* | $guitool --list --width=780 --height=460 --title=$"Select an Element." --text=$"Select one element that you want to translate or to update in an existing translation.\nFirst elements are suggested, they are sorted in purpose" --column=$"Element" --column=$"Description" || echo cancel )"
 	ui_answer_check
 
 	rm -f "$tempfile" ${tempfile}_order_*
