@@ -244,9 +244,9 @@ translate_elive(){
     fi
 
     if ((is_base_translation_avail)) ; then
-	msgmerge -o "$_tr_app_d/${language_user}.pot" "$_tr_app_d/tmp/base_translation.pot" "$_tr_app_d/default.pot"
+	msgmerge --no-wrap -w 20000000 -o "$_tr_app_d/${language_user}.pot" "$_tr_app_d/tmp/base_translation.pot" "$_tr_app_d/default.pot"
     else
-	xgettext -s --language=PO --foreign-user --from-code utf-8 -o "$_tr_app_d/${language_user}.pot" "$_tr_app_d/default.pot"
+	xgettext -s --no-wrap -w 20000000 --language=PO --foreign-user --from-code utf-8 -o "$_tr_app_d/${language_user}.pot" "$_tr_app_d/default.pot"
     fi
 
     sed -i '/Content-Type/s/charset=.*$/charset=utf-8\\n"/' "$_tr_app_d/${language_user}.pot"
@@ -289,6 +289,10 @@ translate_elive(){
 
     # why fuck always all the applications are buggy ? im tired to fix things everywhere
     sed -i "/\"Project-Id-Version: /s|^.*Version:.*$|Version: ${_tr_package_version_v}\\\n\"|g" "$_tr_app_d/${language_user}.pot"
+
+    # remove wraps
+    msgattrib --no-wrap -w 20000000 -o "$_tr_app_d/${language_user}-new.pot" "$_tr_app_d/${language_user}.pot"
+    mv -f "$_tr_app_d/${language_user}-new.pot" "$_tr_app_d/${language_user}.pot"
 
 
     rm -f "$_tr_app_d/${language_user}.mo"
@@ -811,7 +815,7 @@ translate_new(){
 		    count_messages_completed "${item_v}/${item_lang_v}.pot" "$item_v"
 
 		    if [[ "${count_percent_v}" -ge "100" ]] ; then
-			msgmerge -U "$item_v/${item_lang_v}.pot" "$item_v/default.pot" 2>/dev/null 1>&2
+			msgmerge --no-wrap -w 20000000 -U "$item_v/${item_lang_v}.pot" "$item_v/default.pot" 2>/dev/null 1>&2
 			#mv $item_v/${item_lang_v}.tmp.pot $item_v/${item_lang_v}.pot
 			count_messages_completed "$item_v/${item_lang_v}.pot" "$item_v"
 		    fi
