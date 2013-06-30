@@ -121,14 +121,19 @@ dependencies_install(){
 
     # spell package
     # FIXME: wee need to add something in our conf file to say "yes, it is already installed", this check is not enough
-    if ! dpkg -l | grep "myspell-${_lang}" | grep -q "^ii" ; then
+    if ! grep -q "myspell_installed: ${_lang}" "${preferences_f}" ; then
+	if ! dpkg -l | grep "myspell-${_lang}" | grep -q "^ii" ; then
 
-	package_dict="$( apt-cache search myspell-${_lang} | grep "^myspell" )"
-	ui_user_answered="$( echo "$package_dict" | $guitool --list --height=210 --width=350 --text=$"Select the appropriate dictionary package from this list." --column=$"Package" || echo cancel )"
+	    package_dict="$( apt-cache search myspell-${_lang} | grep "^myspell" )"
+	    ui_user_answered="$( echo "$package_dict" | $guitool --list --height=320 --width=380 --text=$"Select the appropriate dictionary package from this list." --column=$"Package" || echo cancel )"
 
-	if [[ -n "$ui_user_answered" ]] && [[ "$ui_user_answered" != "cancel" ]] ; then
-	    packagename="$(echo "$ui_user_answered" | awk '{print $1}')"
-	    el_array_member_add "$packagename" "${dependencies[@]}" ; dependencies=("${_out[@]}")
+	    if [[ -n "$ui_user_answered" ]] && [[ "$ui_user_answered" != "cancel" ]] ; then
+		packagename="$(echo "$ui_user_answered" | awk '{print $1}')"
+		el_array_member_add "$packagename" "${dependencies[@]}" ; dependencies=("${_out[@]}")
+	    fi
+
+	    # mark installed conf
+	    echo "myspell_installed: ${_lang}" >> "${preferences_f}"
 	fi
     fi
 
@@ -152,8 +157,8 @@ It is not something really easy and it requires a good understanding of the gram
 
 Grammar Checks:
 ===============
-You have a nice automated system to check the grammar, for use it in a fast way you can follow the next procedure:
-- Press 'Ctrl + a, Ctrl + c' for copy the text in the box
+For check the correct grammar (very important), you can do it in a fast way using this procedure:
+- Press 'Ctrl + a, Ctrl + c' for copy the text on the box
 - Click in the 'LT' icon in the systray for do the grammar check
 
 Suggestion: use the 'detect language' option by default
