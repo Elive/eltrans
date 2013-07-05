@@ -125,7 +125,7 @@ dependencies_install(){
 	if ! dpkg -l | grep "myspell-${_lang}" | grep -q "^ii" ; then
 
 	    package_dict="$( apt-cache search myspell-${_lang} | grep "^myspell" )"
-	    ui_user_answered="$( echo "$package_dict" | $guitool --list --height=320 --width=380 --text=$"Select the appropriate dictionary package from this list." --column=$"Package" || echo cancel )"
+	    ui_user_answered="$( echo "$package_dict" | $guitool --list --height=320 --width=420 --text=$"Select the appropriate dictionary package from this list." --column=$"Package" || echo cancel )"
 
 	    if [[ -n "$ui_user_answered" ]] && [[ "$ui_user_answered" != "cancel" ]] ; then
 		packagename="$(echo "$ui_user_answered" | awk '{print $1}')"
@@ -151,7 +151,7 @@ dependencies_install(){
 instructions_show(){
     echo -e $"Original Messages:
 ==================
-The original text can be not spelled correctly, or not even in an intuitive way, think about that the messages needs to be as short as possible and simple to understand, complex sentences are not good (and programmers explain things deeply, sometimes).
+The original messages are maybe not spelled correctly, or not clearly understandatable, think about that the messages needs to be as short as possible and simple to understand, complex sentences are not good (and programmers explain things deeply, sometimes).
 
 It is not something really easy and it requires a good understanding of the grammar and even consider psychological aspects, but if you think that you can improve the original messages you are more than welcome! just do a translation to 'English' then.
 
@@ -164,12 +164,14 @@ For check the correct grammar (very important), you can do it in a fast way usin
 
 Suggestion: use the 'detect language' option by default
 
-Corrections:
+Proofreads:
 ============
 If you are doing corrections this means that these messages are mostly automatically generated, they can include the correct words but maybe not correctly spelled, not in human language or not understandable, simply improve them and you can click in the cloud icon when you have it done (Alt + U)
 
-Extras:
-=======
+If the original message is just correct, you can recyclate it fastly doing 'Ctrl + a', 'Ctrl + c', 'Tab', 'Ctrl + v'
+
+Moving Faster:
+==============
 
 For moving faster to the next message, press TAB, the down-key, and again TAB
 
@@ -206,8 +208,7 @@ preferences_edit(){
 }
 ############################################################################
 select_language(){
-    #$guitool --info --text=$"Important: You can also do translations in English. The English translations are the most important ones because it is the standard one where all the other translations come from, so it is imperitive they are correctly written (not in the <b>Tarzanic English</b> of the developer). In order to do English translations simply use the '<b>en</b>' value."
-    $guitool --info --text=$"Important: Original sentences from the applications are possibly not made by native english speakers, they are also not focused on using the perfect grammar and wording for the messages, if you have good english skills <b>please improve the english</b> of the messages first because they are more important than any other translation, so all of them are based on the english ones, messages needs to be short, direct and clearly understandable."
+    $guitool --info --text=$"Important: Original sentences from the applications are possibly not made by native english speakers, they may not use a perfect grammar and most of the time they don't even sleep, if you have good english skills <b>please improve the english</b> of the messages before other languages because they are more important than any other one, so all of them are based on the english ones, messages needs to be short, direct and clearly understandable."
 
     ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title=$"Select Language" --text=$"Select the language variant (locale) that you want to translate to, your system is now set to the '${LANG%%_*}' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nFor improve the original English messages use the 'en' value" || echo cancel )"
 
@@ -220,7 +221,7 @@ select_language(){
     dependencies_install "$language_user"
 
     if [[ "$language_user" = "en" ]] ; then
-	$guitool --info --text=$"Thanks for collaborating in the proofreading of the messages, you will have in your systray a grammar checker tool, if you think that the original messages are not correctly spelled or not giving the correct information to the user in order to be correctly understood, feel free to improve it, if you don't understand what the messages means you can enter in the IRC chat channel and ask to the developers about their meaning, for example ask to Thanatermesis or PrinceAMD."
+	$guitool --info --text=$"Thanks for collaborating in the proofreading of the messages, you will have in your systray a grammar checker tool, if you think that the original messages are not correctly spelled or not giving the correct information to the end-user in order to be correctly understood, feel free to improve it, if you don't understand what the messages means you can enter in the IRC chat channel and ask to the developers about their meaning."
     fi
 
 }
@@ -263,7 +264,7 @@ translate_elive(){
 	xgettext -s --no-wrap -w 20000000 --language=PO --foreign-user --from-code utf-8 -o "$_tr_app_d/${language_user}.pot" "$_tr_app_d/default.pot"
     fi
 
-    sed -i '/Content-Type/s/charset=.*$/charset=utf-8\\n"/' "$_tr_app_d/${language_user}.pot"
+    sed -i '/Content-Type/s/charset=.*$/charset=UTF-8\\n"/' "$_tr_app_d/${language_user}.pot"
 
     rm -rf "$_tr_app_d/tmp"
 
@@ -272,16 +273,16 @@ translate_elive(){
     count_messages_completed "$_tr_app_d/en.pot"
 
     if [[ "$count_percent_v" -lt "85" ]] ; then
-	$guitool --warning --text=$"This translation has less than the 85% of the messages proofreaded. If you have english skills please proofread it first, otherwise we suggest to translate another application instead for now, otherwise you risk to do the translation twice since the proofreading could change the sentences to new ones."
+	if ! [[ "${language_user}" = "en" ]] ; then
+	    $guitool --warning --text=$"This translation has less than the 85% of their original messages proofreaded. If you have english skills please proofread it first, otherwise we suggest to translate another application instead for now, otherwise you risk to do the translation twice since the proofreading could change the sentences to new ones."
+	fi
     fi
 
 
     count_messages_completed "$_tr_app_d/${language_user}.pot"
 
     if [[ "$fuzzy_msgs_v" -ge "10" ]] ; then
-	notify-send -t 100000 $"Eltrans: If you've got messages that need an update (FUZZY) but they are correctly translated, you can press the cloud icon."" "$"(or the Alt + U key)"
-    #else
-	#notify-send -t 100000 $"Tip: For moving more faster to the next message, press TAB, the down-arrow, and TAB again"
+	notify-send -t 80000 $"Eltrans Suggestion" $"Eltrans: If you've got messages that need an update (FUZZY) but they are correctly translated, you can press the cloud icon."" "$"(or the Alt + U hotkey)"
     fi
 
     #
@@ -326,6 +327,9 @@ translate_elive(){
     # TODO: improve that crap
     translation_elive_install "$( basename $_tr_app_d )" "$_tr_app_d/${language_user}.pot" "$language_user"
     commit_changes_elive "$( basename $_tr_app_d )" "${language_user}.pot" "$_tr_app_d" "${language_user}"
+
+    update_translations
+    translate_new
 }
 ############################################################################
 translation_elive_install(){
@@ -396,19 +400,20 @@ commit_changes_elive(){
 	> "${logs_err}"
 
     # only send translations in utf-8 mode
-    if ! grep -q "Content-Type:.*charset=UTF-8" ; then
+    if ! grep -iq "Content-Type:.*charset=UTF-8" "$_tr_pot_f" ; then
 	echo $"Translated file doesn't looks like to be in UTF-8 mode" >> "${logs_err}"
-	echo $"It is strictly needed that the charset used is UTF-8" >> "${logs_err}"
+	echo $"It is very needed that the charset used will be UTF-8" >> "${logs_err}"
 	echo $"Try to change the configuration in the editor for being UTF-8" >> "${logs_err}"
     fi
 
     if [[ -s "${logs_err}" ]]; then
-	$guitool --info --text=$"I have found Warnings or Errors in your translation, please read them carefully and try to fix the problem manually. You've got a window open with the details of these errors. These messages include in the first field the exact number of the line of the problem. Enable line-number visualization in the editor if it is not enabled."
+	$guitool --info --text=$"I have found Warnings or Errors in your translation, please read them carefully and try to fix the problem manually. You will see a window with the details of these errors. These messages include in the first field the exact number of the line of the problem. Enable line-number visualization in your editor if it is not enabled."
 
 	cat "${logs_err}" | $guitool --text-info --width=650 --height=400 &
-	rm -f "${logs_err}"
 
 	scite "$_tr_pot_f"
+
+	rm -f "${logs_err}"
     fi
     #}
 
@@ -429,7 +434,7 @@ commit_changes_elive(){
 	cat > "${temp_script}" << EOF
 #!/bin/bash
 
-if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans auto:  |${_tr_app}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}"  ; then
+if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans commit:  |${_tr_app}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}"  ; then
     sleep 1
     $guitool --info --text=$"Translation sent sucessfully. Thanks a lot for your collaboration, it can be reviewed soon and included directly on Elive the next time. You can see it directly at http://dev.elivecd.org/timeline, you can watch other translations made by someone else, who made it, diff them, recover an older translation, etc"
 
@@ -448,8 +453,6 @@ EOF
 	fi
     fi
 
-    update_translations
-    translate_new
 }
 ############################################################################
 add_translations_dir_e17(){
@@ -553,7 +556,7 @@ EOF
 
 		conflicted_file_f="$( grep "^G " "${logs_err}" | awk '{print $2}' | tr '\n' ' ')"
 
-		$guitool --warning --text=$"IMPORTANT: There is an update of the file '${conflicted_file_f}' that conflicts with your version. It will be removed so eltrans will work correctly, but if you have an old translation that you don't want to lose, you will have to make a backup of this file to /tmp/${USER}-translations-eltrans. Then you should close eltrans, install the 'meld' package, and compare this file with the actual one in ${translating_d}. Run eltrans again with your updated file and commit the translation if needed. If you don't care about this old file, just ignore this message and continue."
+		$guitool --warning --text=$"IMPORTANT: There is an update of the file '${conflicted_file_f}' that conflicts with your version. It will be removed so eltrans can work correctly, but if you have an old translation that you don't want to lose, you should make a backup of your old file from /tmp/${USER}-translations-eltrans. Then close eltrans, install the 'meld' package, and use it for compare and merge the changes with this file and the actual one in ${translating_d}. Finally, run eltrans again with your updated file and send the translation if needed. If you don't care about this old file, just ignore this message and continue."
 		unset conflicted_file_f
 	    fi
 
@@ -854,7 +857,7 @@ translate_new(){
 
 		    # Normal description set for different percentages
 		    if [[ "${count_percent_v}" = "100" ]] ; then
-			tr_description_v=$"- Completed - Translation is not needed in the '${item_lang_v}' language, ${count_percent_proofreaded_v}% Proofreaded (en)."
+			tr_description_v=$"- Completed - Translation is not needed in the '${item_lang_v}' language, its ${count_percent_proofreaded_v}% is Proofreaded (en)."
 			item_order_v=8
 		    else
 			tr_description_v="${tr_description_v} - ${count_percent_v}%"$" completed (${item_lang_v}), ${count_percent_proofreaded_v}% Proofreaded (en)"
@@ -941,7 +944,7 @@ main(){
 	config_get
     else
 	precache /etc/alternatives/x-www-browser "http://www.elivecd.org/Help/Collaborate" &
-	$guitool --info --text=$"You need an eltrans account for make translations, please create it first"
+	$guitool --info --text=$"You need an eltrans account in order to make translations, please create it first"
 	/etc/alternatives/x-www-browser "http://www.elivecd.org/Help/Collaborate" &
 	sleep 14
 	preferences_edit
