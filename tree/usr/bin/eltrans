@@ -221,7 +221,7 @@ select_language(){
     dependencies_install "$language_user"
 
     if [[ "$language_user" = "en" ]] ; then
-	$guitool --info --text=$"Thanks for collaborating in the proofreading of the messages, you will have in your systray a grammar checker tool, if you think that the original messages are not correctly spelled or not giving the correct information to the end-user in order to be correctly understood, feel free to improve it, if you don't understand what the messages means you can enter in the IRC chat channel and ask to the developers about their meaning."
+	$guitool --info --text=$"Thanks for decide to collaborating in the proofreading of the messages, you will have in your systray a grammar checker tool, if you think that the original messages are not correctly spelled or not giving the correct information to the end-user in order to be correctly understood, feel free to improve it, if you don't understand what the messages means you can enter in the IRC chat channel and ask to the developers about their meaning."
     fi
 
 }
