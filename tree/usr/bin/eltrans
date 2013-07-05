@@ -335,7 +335,7 @@ translate_elive(){
 translation_elive_install(){
     el_debug
 
-    local _tr_app _tr_pot _tr_lang
+    local _tr_app _tr_pot _tr_lang svn_diff
     _tr_app="$1"
     _tr_pot="$2"
     _tr_lang="$3"
@@ -343,18 +343,23 @@ translation_elive_install(){
     el_check_variables "_tr_lang,_tr_pot,_tr_app"
     el_check_files "${_tr_pot}"
 
-    if $guitool --question --text=$"Do you want to use your translation in your system now ? It is strongly suggested to test yourself the made translations before to send them to Elive in order to check that works without problems." ; then
+    svn_diff="$( svn diff | grep -E "(^-|^\+)" | grep -vE "(^---|^\+\+\+)" | grep -vE "(POT-Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; )" )"
 
-	if ! [[ -d "/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES" ]] ; then
-	    gksu "mkdir -p /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES"
-	fi
+    if [[ -n "$svn_diff" ]] ; then
+	if $guitool --question --text=$"Do you want to use your translation in your system now ? It is strongly suggested to test yourself the made translations before to send them to Elive in order to check that works without problems." ; then
 
-	if gksu "msgfmt ${_tr_pot} -o /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_app}.mo" ; then
-	    $guitool --info --text=$"Your translation is installed in your system, you can use it now"
-	else
-	    $guitool --error
+	    if ! [[ -d "/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES" ]] ; then
+		gksu "mkdir -p /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES"
+	    fi
+
+	    if gksu "msgfmt ${_tr_pot} -o /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_app}.mo" ; then
+		$guitool --info --text=$"Your translation is installed in your system, you can use it now"
+	    else
+		$guitool --error
+	    fi
 	fi
     fi
+
 }
 ############################################################################
 config_get(){
