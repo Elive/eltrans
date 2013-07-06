@@ -458,6 +458,12 @@ EOF
 	fi
     fi
 
+    # proofreaders
+    if [[ "$language_user" = "en" ]] ; then
+	# FIXME: this is a temporal message hack
+	$guitool --warning --text=$"Please try to understand this: When you send a new proofreaded translation, an automated script is triggered each 5 hours for rebuild that package, in order to make your life easier it also updates the new proofreaded messages in the english translation file, this is good in order to you not need you to proofread again these new messages since are considered new ones. Due to this, if you proofread again the same application before the automated system updates the script, you can have a conflicted file containing both versions, you can always solve this issue by using meld as how it is explained when this happens, it is not hard but also not nice to need to do that. So in order to avoid those cases we suggest you to wait 5 hours before to send the new proofread of the same application. Finally, you can also watch http://dev.elivecd.org/timeline to see what and what is not changed. Thanks again for your collaboration!"
+    fi
+
 }
 ############################################################################
 add_translations_dir_e17(){
