@@ -47,7 +47,16 @@ export guitool
 mode_only_e17_v="no" # Warning: This option inhabilite the Elive translators part, set it to "yes" if you want to use this tool ONLY for Enlightenment 17 translations
 
 # version of this tool, for compatibility
-export eltrans_version_v="2"
+export eltrans_version_v="3"
+
+# update it
+if el_package_update_last_version ; then
+    local message_update
+    message_update="$( printf "$( eval_gettext "Updated eltrans, please restart it" )" )"
+    $guitool --info --text="$message_update"
+    exit
+fi
+
 
 rm -rf "${tempdir}"
 mkdir -p "${tempdir}"
@@ -365,6 +374,7 @@ translation_elive_install(){
 	    fi
 
 	    if gksu "msgfmt ${_tr_pot} -o /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_app}.mo" ; then
+		is_translation_installed=1
 		$guitool --info --text="$( eval_gettext "Your translation is installed in your system, you can use it now" )"
 	    else
 		$guitool --error
@@ -395,6 +405,14 @@ commit_changes_elive(){
     el_check_variables "_tr_pot_f"
     el_check_files "$_tr_pot_f"
 
+    if ! ((is_translation_installed)) ; then
+	local message_install_required
+	message_install_required="$( printf "$( eval_gettext "Please install first your translation in your system before to send it, so you can verify that works correctly, return now?" )" )"
+	if $guitool --question --text="$message_install_required" ; then
+	    return
+	fi
+    fi
+
     if ! $guitool --question --text="$( eval_gettext "To send your translation to Elive is an automated process, on that way everybody can profit of your translation on their Elive too\n\nJust create yourself an account at http://www.elivecd.org/Help/Collaborate\n\nNote that if you wait too much for send it and another person works on the same one, your translation can be uncompatible due to a conflict in the file, so its a good practice to send updated version from time to time instead of wait that you finish entirely the translation, only the translated messages will be included on the application\n\nFinally, only send them if the grammar is correctly used, even change the wording in the english version if you found it required\n\nSend translations now?" )" ; then
 	return
     fi
@@ -416,10 +434,18 @@ commit_changes_elive(){
 	> "${logs_err}"
 
     # only send translations in utf-8 mode
-    if ! grep -iq "Content-Type:.*charset=UTF-8" "$_tr_pot_f" ; then
+    if ! grep -iq "Content-Type:.*charset=UTF-8" "$_tr_pot_f" && [[ "$language_user" != "en" ]] ; then
 	echo "$( eval_gettext "Translated file doesn't looks like to be in UTF-8 mode" )" >> "${logs_err}"
 	echo "$( eval_gettext "It is very needed that the charset used will be UTF-8" )" >> "${logs_err}"
 	echo "$( eval_gettext "Try to change the configuration in the editor for being UTF-8" )" >> "${logs_err}"
+    fi
+
+    # verify that english proofreading are really english
+    if [[ "$language_user" = "en" ]] ; then
+	if file "${_tr_pot_f}" | grep -qi "UTF-8 Unicode text" ; then
+	    $guitool --error --text="$( eval_gettext "Your translation to English (proofreading of english, so ugly-english to good-english) was not detected to be English but another language instead, if you want to do translations to spanish for example you need to select the 'es' keycode, but the 'en' one is only used for english proofreading. We are not going to send this translation because of this detected problem, if you think that this is a bug and your translation is correctly an english one, please report this problem to the bugs website of Elive and make sure to backup your translator copy. Thank you" )"
+	    return
+	fi
     fi
 
     if [[ -s "${logs_err}" ]]; then
