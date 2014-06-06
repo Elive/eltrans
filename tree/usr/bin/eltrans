@@ -50,7 +50,7 @@ mode_only_e17_v="no" # Warning: This option inhabilite the Elive translators par
 export eltrans_version_v="3"
 
 # update it
-if el_package_update_last_version ; then
+if el_package_update_last_version eltrans ; then
     local message_update
     message_update="$( printf "$( eval_gettext "Updated eltrans, please restart it" )" )"
     $guitool --info --text="$message_update"
