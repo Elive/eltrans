@@ -405,12 +405,13 @@ commit_changes_elive(){
     el_check_variables "_tr_pot_f"
     el_check_files "$_tr_pot_f"
 
-    if ! ((is_translation_installed)) ; then
-        local message_install_required
-        message_install_required="$( printf "$( eval_gettext "Suggestion: Please install first your translation in your system before to send it, so you can verify that works correctly." )" )"
+    # TODO: if you fix the fucking gksu issue then you can enable this back
+    #if ! ((is_translation_installed)) ; then
+        #local message_install_required
+        #message_install_required="$( printf "$( eval_gettext "Suggestion: Please install first your translation in your system before to send it, so you can verify that works correctly." )" )"
 
-        $guitool --info --text="$message_install_required"
-    fi
+        #$guitool --info --text="$message_install_required"
+    #fi
 
     if ! $guitool --question --text="$( eval_gettext "To send your translation to Elive is an automated process, on that way everybody can profit of your translation on their Elive too\n\nJust create yourself an account at http://www.elivecd.org/Help/Collaborate\n\nNote that if you wait too much for send it and another person works on the same one, your translation can be uncompatible due to a conflict in the file, so its a good practice to send updated version from time to time instead of wait that you finish entirely the translation, only the translated messages will be included on the application\n\nFinally, only send them if the grammar is correctly used, even change the wording in the english version if you found it required\n\nSend translations now?" )" ; then
         return
