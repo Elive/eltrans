@@ -345,44 +345,44 @@ translate_elive(){
 
     rm -f "$_tr_app_d/${language_user}.mo"
 
-    # TODO: improve that crap
-    translation_elive_install "$( basename $_tr_app_d )" "$_tr_app_d/${language_user}.pot" "$language_user"
+    # FIXME: temporally disabled the installing of translations because they are simply broken, they don't works good, WTF stupid crappy gksu
+    #translation_elive_install "$( basename $_tr_app_d )" "$_tr_app_d/${language_user}.pot" "$language_user"
     commit_changes_elive "$( basename $_tr_app_d )" "${language_user}.pot" "$_tr_app_d" "${language_user}"
 
     update_translations
     translate_new
 }
 ############################################################################
-translation_elive_install(){
-    el_debug
+#translation_elive_install(){
+    #el_debug
 
-    local _tr_app _tr_pot _tr_lang svn_diff
-    _tr_app="$1"
-    _tr_pot="$2"
-    _tr_lang="$3"
+    #local _tr_app _tr_pot _tr_lang svn_diff
+    #_tr_app="$1"
+    #_tr_pot="$2"
+    #_tr_lang="$3"
 
-    el_check_variables "_tr_lang,_tr_pot,_tr_app"
-    el_check_files "${_tr_pot}"
+    #el_check_variables "_tr_lang,_tr_pot,_tr_app"
+    #el_check_files "${_tr_pot}"
 
-    svn_diff="$( svn diff | grep -E "(^-|^\+)" | grep -vE "(^---|^\+\+\+)" | grep -vE "(POT-Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; )" )"
+    #svn_diff="$( svn diff | grep -E "(^-|^\+)" | grep -vE "(^---|^\+\+\+)" | grep -vE "(POT-Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; )" )"
 
-    if [[ -n "$svn_diff" ]] ; then
-        if $guitool --question --text="$( eval_gettext "Do you want to use your translation in your system now ? It is strongly suggested to test yourself the made translations before to send them to Elive in order to check that works without problems." )" ; then
+    #if [[ -n "$svn_diff" ]] ; then
+        #if $guitool --question --text="$( eval_gettext "Do you want to use your translation in your system now ? It is strongly suggested to test yourself the made translations before to send them to Elive in order to check that works without problems." )" ; then
 
-            if ! [[ -d "/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES" ]] ; then
-                gksu "mkdir -p /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES"
-            fi
+            #if ! [[ -d "/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES" ]] ; then
+                #gksu "mkdir -p /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES"
+            #fi
 
-            if gksu "msgfmt ${_tr_pot} -o /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_app}.mo" ; then
-                is_translation_installed=1
-                $guitool --info --text="$( eval_gettext "Your translation is installed in your system, you can use it now" )"
-            else
-                $guitool --error
-            fi
-        fi
-    fi
+            #if gksu "msgfmt ${_tr_pot} -o /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_app}.mo" ; then
+                #is_translation_installed=1
+                #$guitool --info --text="$( eval_gettext "Your translation is installed in your system, you can use it now" )"
+            #else
+                #$guitool --error
+            #fi
+        #fi
+    #fi
 
-}
+#}
 ############################################################################
 config_get(){
     pref_user_cached_v="$( cat "$preferences_f" | grep username | sed 's/^.*:://g' )"
@@ -495,11 +495,13 @@ EOF
     fi
 
     # proofreaders
-    if [[ "$language_user" = "en" ]] ; then
-        # FIXME: this is a temporal message hack
-        $guitool --warning --text="$( eval_gettext "Please try to understand this: When you send a new proofreaded translation, an automated script is triggered each 5 hours for rebuild that package, in order to make your life easier it also updates the new proofreaded messages in the english translation file, this is good in order to you not need you to proofread again these new messages since are considered new ones. Due to this, if you proofread again the same application before the automated system updates the script, you can have a conflicted file containing both versions, you can always solve this issue by using meld as how it is explained when this happens, it is not hard but also not nice to need to do that. So in order to avoid those cases we suggest you to wait 5 hours before to send the new proofread of the same application. Finally, you can also watch http://dev.elivecd.org/timeline to see what and what is not changed. Thanks again for your collaboration!" )"
-    fi
+    #if [[ "$language_user" = "en" ]] ; then
+        ## FIXME: this is a temporal message hack
+        #$guitool --warning --text="$( eval_gettext "Please understand this: When you proofread the english, these improved messages are directly integrated in the source code, which changes these sentences in all the other languages too, by other side, if in the future you see a conflict status in your translated files and you don't want to erase them you can try to use meld between the directories." )"
+    #fi
 
+    # last message
+    $guitool --info --text="$( eval_gettext "Messages are sent, you can see the progress at http://dev.elivecd.org/timeline" )"
 }
 ############################################################################
 add_translations_dir_e17(){
@@ -702,40 +704,40 @@ translate_e17_new_language(){
 
     rm -f "$translating_e17_worked_d/${language_user}.mo"
 
-    translation_e17_install "$translating_e17_worked_d/${language_user}.pot"
+    #translation_e17_install "$translating_e17_worked_d/${language_user}.pot"
 }
 ############################################################################
-translation_e17_install(){
-    el_debug
+#translation_e17_install(){
+    #el_debug
 
-    local _translated_pot
-    _translated_pot="$1"
-    el_check_variables "_translated_pot"
+    #local _translated_pot
+    #_translated_pot="$1"
+    #el_check_variables "_translated_pot"
 
-    if $guitool --question --text="$( eval_gettext "Do you want to try your translation now ?" )" ; then
+    #if $guitool --question --text="$( eval_gettext "Do you want to try your translation now ?" )" ; then
 
-        if ! [[ -d /usr/share/locale/${language_user%%.*}/LC_MESSAGES ]] ; then
-            gksu "mkdir -p /usr/share/locale/${language_user%%.*}/LC_MESSAGES"
-        fi
+        #if ! [[ -d /usr/share/locale/${language_user%%.*}/LC_MESSAGES ]] ; then
+            #gksu "mkdir -p /usr/share/locale/${language_user%%.*}/LC_MESSAGES"
+        #fi
 
-        gksu "msgfmt \"${_translated_pot}\" -o /usr/share/locale/${language_user%%.*}/LC_MESSAGES/enlightenment.mo"
+        #gksu "msgfmt \"${_translated_pot}\" -o /usr/share/locale/${language_user%%.*}/LC_MESSAGES/enlightenment.mo"
 
-        enlightenment_remote -restart 2>/dev/null 1>&2
+        #enlightenment_remote -restart 2>/dev/null 1>&2
 
-        sleep 6
-    fi
+        #sleep 6
+    #fi
 
 
-    local translated_message
-    translated_message="$( printf "$( eval_gettext "Now, you need to send your translation(s) to Enlightenment 17 developers, for that, you need to send it via email to the enlightenment-intl mailing list.\n\nYour Enlightenment 17 Translation files are located in your %s directory\n\nPress Continue to be redirected to the mailing list suscription on your web-browser.\n\nAdd a small description to the email like the language translated and the possible variant, the Operating-System, your country, and your locales value, your one is: %s" )" "$translating_e17_worked_d" "$LANG" )"
+    #local translated_message
+    #translated_message="$( printf "$( eval_gettext "Now, you need to send your translation(s) to Enlightenment 17 developers, for that, you need to send it via email to the enlightenment-intl mailing list.\n\nYour Enlightenment 17 Translation files are located in your %s directory\n\nPress Continue to be redirected to the mailing list suscription on your web-browser.\n\nAdd a small description to the email like the language translated and the possible variant, the Operating-System, your country, and your locales value, your one is: %s" )" "$translating_e17_worked_d" "$LANG" )"
 
-    $guitool --info --title="$( eval_gettext "Send your translation" )" --text="$translated_message"
+    #$guitool --info --title="$( eval_gettext "Send your translation" )" --text="$translated_message"
 
-    if ! /etc/alternatives/x-www-browser https://lists.sourceforge.net/lists/listinfo/enlightenment-intl 2>/dev/null 1>&2 ; then
-        # do something?
-        true
-    fi
-}
+    #if ! /etc/alternatives/x-www-browser https://lists.sourceforge.net/lists/listinfo/enlightenment-intl 2>/dev/null 1>&2 ; then
+        ## do something?
+        #true
+    #fi
+#}
 ############################################################################
 verify_locale_supported(){
     el_debug
