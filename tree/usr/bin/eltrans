@@ -66,6 +66,7 @@ ui_answer_check(){
     el_debug
 
     if [[ "$ui_user_answered" = "cancel" ]] ; then
+        $guitool --info --tex="$( eval_gettext "Thanks for collaborating with the Elive translations." )"
         exit 0
     fi
 
@@ -1018,7 +1019,7 @@ main(){
     if [[ -f "$preferences_f" ]] ; then
         config_get
     else
-        precache /etc/alternatives/x-www-browser "http://www.elivecd.org/Help/Collaborate" &
+        precache /etc/alternatives/x-www-browser
         $guitool --info --text="$( eval_gettext "You need an eltrans account in order to make translations, please create it first" )"
         /etc/alternatives/x-www-browser "http://www.elivecd.org/Help/Collaborate" &
         sleep 14
