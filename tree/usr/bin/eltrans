@@ -1021,13 +1021,13 @@ main(){
     else
         precache /etc/alternatives/x-www-browser
         #$guitool --info --text="$( eval_gettext "You need an eltrans account in order to make translations, please create it first" )"
-        $guitool --info --text="$( eval_gettext "In order to make Elive translations you need an account, actually you can obtain it sending a message to Thanatermesis to request it. Please include in your message the languages on which you want to translate, an username and a password to use." )"
+        $guitool --info --text="$( eval_gettext "In order to make Elive translations you need an account, actually you can obtain it sending a message to Thanatermesis to request it. Include in your message the language on which you want to translate, an username and a password to use." )"
 
         #/etc/alternatives/x-www-browser "http://www.elivecd.org/collaborate" &
         /etc/alternatives/x-www-browser "http://www.elivecd.org/contact" &
         sleep 30
 
-        $guitool --error --text="$( eval_gettext "Insert your username and password when you have obtained it." )"
+        $guitool --info --text="$( eval_gettext "Insert your username and password when you have obtained it." )"
         preferences_edit
     fi
 
