@@ -203,7 +203,7 @@ preferences_edit(){
     pref_user_cached_v="$( cat "$preferences_f" | grep username | sed 's/^.*:://g' )"
     pref_pass_cached_v="$( cat "$preferences_f" | grep password | sed 's/^.*:://g' )"
 
-    #$guitool --info --text="$( eval_gettext "To collaborate with Elive making translations, you need to create yourself an account in http://www.elivecd.org/Help/Collaborate\n\nThanks a lot for your collaboration" )"
+    #$guitool --info --text="$( eval_gettext "To collaborate with Elive making translations, you need to create yourself an account in http://www.elivecd.org/collaborate\n\nThanks a lot for your collaboration" )"
     ui_user_answered="$( $guitool --entry --title="$( eval_gettext "Elive Translator Account" )" --text="$( eval_gettext "Enter the Username of your Elive translator account" )" --entry-text="$pref_user_cached_v" || echo cancel )"
     ui_answer_check
     newuser="$ui_user_answered"
@@ -414,7 +414,7 @@ commit_changes_elive(){
         #$guitool --info --text="$message_install_required"
     #fi
 
-    if ! $guitool --question --text="$( eval_gettext "To send your translation to Elive is an automated process, on that way everybody can profit of your translation on their Elive too\n\nJust create yourself an account at http://www.elivecd.org/Help/Collaborate\n\nNote that if you wait too much for send it and another person works on the same one, your translation can be uncompatible due to a conflict in the file, so its a good practice to send updated version from time to time instead of wait that you finish entirely the translation, only the translated messages will be included on the application\n\nFinally, only send them if the grammar is correctly used, even change the wording in the english version if you found it required\n\nSend translations now?" )" ; then
+    if ! $guitool --question --text="$( eval_gettext "To send your translation to Elive is an automated process, on that way everybody can profit of your translation on their Elive too\n\nJust create yourself an account at http://www.elivecd.org/collaborate\n\nNote that if you wait too much for send it and another person works on the same one, your translation can be uncompatible due to a conflict in the file, so its a good practice to send updated version from time to time instead of wait that you finish entirely the translation, only the translated messages will be included on the application\n\nFinally, only send them if the grammar is correctly used, even change the wording in the english version if you found it required\n\nSend translations now?" )" ; then
         return
     fi
 
@@ -1020,9 +1020,14 @@ main(){
         config_get
     else
         precache /etc/alternatives/x-www-browser
-        $guitool --info --text="$( eval_gettext "You need an eltrans account in order to make translations, please create it first" )"
-        /etc/alternatives/x-www-browser "http://www.elivecd.org/Help/Collaborate" &
-        sleep 14
+        #$guitool --info --text="$( eval_gettext "You need an eltrans account in order to make translations, please create it first" )"
+        $guitool --info --text="$( eval_gettext "In order to make Elive translations you need an account, actually you can obtain it sending a message to Thanatermesis to request it. Please include in your message the languages on which you want to translate, an username and a password to use." )"
+
+        #/etc/alternatives/x-www-browser "http://www.elivecd.org/collaborate" &
+        /etc/alternatives/x-www-browser "http://www.elivecd.org/contact" &
+        sleep 30
+
+        $guitool --error --text="$( eval_gettext "Insert your username and password when you have obtained it." )"
         preferences_edit
     fi
 
