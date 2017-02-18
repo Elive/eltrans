@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Encoding=UTF-8
-Name=Eltrans
+Name=Translate Elive (Eltrans)
 GenericName=Elive Translator tool
 GenericName[vi]=Elive Dịch công cụ
 GenericName[uk]=Elive Translator інструмент
@@ -68,4 +68,4 @@ Icon=config-language
 TryExec=eltrans
 Exec=eltrans
 Terminal=false
-Categories=Development
+Categories=Elive
