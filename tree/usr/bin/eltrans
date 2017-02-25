@@ -238,7 +238,7 @@ select_language(){
     dependencies_install "$language_user"
 
     if [[ "$language_user" = "en" ]] ; then
-        $guitool --info --text="$( eval_gettext "Thanks for decide to collaborating in the proofreading of the messages, you will have in your systray a grammar checker tool, if you think that the original messages are not correctly spelled or not giving the correct information to the end-user in order to be correctly understood, feel free to improve it, if you don't understand what the messages means you can enter in the IRC chat channel and ask to the developers about their meaning." )"
+        $guitool --info --text="$( eval_gettext "Thank you for collaborating in the proofreading of the messages. You will have in your systray a grammar checker tool, if you think that the original messages are not correctly spelled or not giving the correct information to the end-user in order to be correctly understood, feel free to improve it, if you don't understand what the messages means you can enter in the IRC chat channel and ask to the developers about their meaning." )"
     fi
 
 }
@@ -296,7 +296,7 @@ translate_elive(){
 
     if [[ "$count_percent_v" -lt "85" ]] ; then
         if ! [[ "${language_user}" = "en" ]] ; then
-            $guitool --warning --text="$( eval_gettext "This translation has less than the 85% of their original messages proofreaded. If you have english skills please proofread it first, otherwise we suggest to translate another application instead for now, otherwise you risk to do the translation twice since the proofreading could change the sentences to new ones." )"
+            $guitool --warning --text="$( eval_gettext "This translation has less than the 85% of their original messages proofread. If you have English skills please proofread it, otherwise we suggest to translate another application  for now or you risk doing the translation twice since the proofreading could change the sentences to new ones." )"
         fi
     fi
 
@@ -304,7 +304,7 @@ translate_elive(){
     count_messages_completed "$_tr_app_d/${language_user}.pot"
 
     if [[ "$fuzzy_msgs_v" -ge "10" ]] ; then
-        notify-send -t 80000 "$( eval_gettext "Eltrans Suggestion" )" "$( eval_gettext "Eltrans: If you've got messages that need an update (FUZZY) but they are correctly translated, you can press the cloud icon." )"" ""$( eval_gettext "(or the Alt + U hotkey)" )"
+        notify-send -t 80000 "$( eval_gettext "Eltrans Suggestion" )" "$( eval_gettext "Eltrans: If you have a message that is in need of an update (FUZZY) but they are correctly translated, you can press the cloud icon." )"" ""$( eval_gettext "(or the Alt + U hotkey)" )"
     fi
 
     #
@@ -436,7 +436,7 @@ commit_changes_elive(){
 
     # only send translations in utf-8 mode
     if ! grep -iq "Content-Type:.*charset=UTF-8" "$_tr_pot_f" && [[ "$language_user" != "en" ]] ; then
-        echo "$( eval_gettext "Translated file doesn't looks like to be in UTF-8 mode" )" >> "${logs_err}"
+        echo "$( eval_gettext "Translated file does not appear to be in UTF-8 mode" )" >> "${logs_err}"
         echo "$( eval_gettext "It is very needed that the charset used will be UTF-8" )" >> "${logs_err}"
         echo "$( eval_gettext "Try to change the configuration in the editor for being UTF-8" )" >> "${logs_err}"
     fi
@@ -479,7 +479,7 @@ commit_changes_elive(){
 
 if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans commit:  |${_tr_app}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}"  ; then
     sleep 1
-    $guitool --info --text="$( eval_gettext "Translation sent sucessfully. Thanks a lot for your collaboration, it can be reviewed soon and included directly on Elive the next time. You can see it directly at http://dev.elivecd.org/timeline, you can watch other translations made by someone else, who made it, diff them, recover an older translation, etc" )"
+    $guitool --info --text="$( eval_gettext "Translation sent sucessfully. Thank you for your collaboration, it can be reviewed soon and included directly on Elive the next time. You can see it directly at http://dev.elivecd.org/timeline, you can watch other translations made by someone else, who made it, diff them, recover an older translation, etc" )"
 
 else
     $guitool --error --text="Error sending your translation, if you are using a Wrong Username or Password for the send please remove the file '$preferences_f', otherwise the better solution is to remove your full translations project dir '$translating_elive_d' and run the 'clean' or 'purge' option of eltrans. You can backup before your translated file and compare it with the 'meld' tool "
@@ -548,7 +548,7 @@ EOF
     rm -f "${temp_script}"
 
     if [[ -s "${logs_err}" ]]; then
-        $guitool --error --text="$( eval_gettext "Error downloading the translations of Elive, is your username and password correctly set? check the reported message, try again later or remove your directory of translations in Projects/translations" )"
+        $guitool --error --text="$( eval_gettext "Error downloading the translations of Elive. Is your Username and Password correct? Check the reported message, try again later or remove your directory of translations in Projects/translations" )"
         cat "${logs_err}" | $guitool --text-info --width=650 --height=400
         rm -f "${logs_err}"
 
@@ -609,7 +609,7 @@ EOF
 
 
             local translated_message
-            translated_message="$( printf "$( eval_gettext "IMPORTANT: There is an update of the file '%s' that conflicts with your version. It will be removed so eltrans can work correctly, but if you have an old translation that you don't want to lose, you should make a backup of your old file from %s. Then close eltrans, install the 'meld' package, and use it for compare and merge the changes with this file and the actual one in %s. Finally, run eltrans again with your updated file and send the translation if needed. If you don't care about this old file, just ignore this message and continue." )" "${conflicted_file_f}" "/tmp/${USER}-translations-eltrans" "${translating_d}" )"
+            translated_message="$( printf "$( eval_gettext "IMPORTANT: There is an update of the file '%s' that conflicts with your version. It will be removed so eltrans can work correctly but if you have an old translation that you don't want to lose, you should make a backup of your old file from %s. You should close eltrans, install the 'meld' package and use it to compare and merge the changes with this file and the actual one in %s. Afterwards, run eltrans again with your updated file and send the translation if needed. If you don't care about this old file, just ignore this message and continue." )" "${conflicted_file_f}" "/tmp/${USER}-translations-eltrans" "${translating_d}" )"
 
             $guitool --warning --text="$translated_message"
 
@@ -901,7 +901,7 @@ translate_new(){
                 # checks
                 if [[ "${tr_version_v}" -gt "$eltrans_version_v" ]] ; then
                     if ! ((is_showed_message_upgrade)) ; then
-                        $guitool --error --text="$( eval_gettext "Some translations requires a newer version of eltrans, please update it" )" &
+                        $guitool --error --text="$( eval_gettext "Some translations require a newer version of eltrans, please update it" )" &
                         is_showed_message_upgrade=1
                     fi
                     continue
@@ -1027,7 +1027,7 @@ main(){
         /etc/alternatives/x-www-browser "http://www.elivecd.org/contact" &
         sleep 30
 
-        $guitool --info --text="$( eval_gettext "Insert your username and password when you have obtained it." )"
+        $guitool --info --text="$( eval_gettext "Insert your Username and Password when you have obtained it." )"
         preferences_edit
     fi
 
