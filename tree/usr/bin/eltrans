@@ -105,7 +105,7 @@ exit_ok(){
 dependencies_install(){
     el_debug
 
-    local packagename _lang dependencies
+    local packagename _lang dependencies ui_user_answered package_dict
     _lang="$1"
 
     el_check_variables "_lang"
@@ -137,7 +137,9 @@ dependencies_install(){
         if ! dpkg -l | grep "myspell-${_lang}" | grep -q "^ii" ; then
 
             package_dict="$( apt-cache search myspell-${_lang} | grep "^myspell" )"
-            ui_user_answered="$( echo "$package_dict" | $guitool --list --height=320 --width=420 --text="$( eval_gettext "Select the appropriate dictionary package from this list." )" --column="$( eval_gettext "Package" )" || echo cancel )"
+            if [[ -n "$package_dict" ]] ; then
+                ui_user_answered="$( echo "$package_dict" | $guitool --list --height=320 --width=420 --text="$( eval_gettext "Select the appropriate dictionary package from this list." )" --column="$( eval_gettext "Package" )" || echo cancel )"
+            fi
 
             if [[ -n "$ui_user_answered" ]] && [[ "$ui_user_answered" != "cancel" ]] ; then
                 packagename="$(echo "$ui_user_answered" | awk '{print $1}')"
@@ -194,7 +196,7 @@ For moving faster to the next message, press TAB, the down-key, and again TAB
 preferences_edit(){
     el_debug
 
-    local newpass newuser
+    local newpass newuser ui_answer_check
     el_check_variables "preferences_f"
 
     mkdir -p "${preferences_f%/*}"
@@ -221,11 +223,15 @@ preferences_edit(){
 }
 ############################################################################
 select_language(){
-    $guitool --info --text="$( eval_gettext "Important: The original sentences from the applications are probably not made by native english speakers, they may not have a perfect grammar and even worse, these developers don't even sleep. If you have good english skills <b>please improve the english</b> of the messages <b>before</b> doing translations in other languages, first because english is more important and second because english is the sentences from which every other languages are translated from, and so they needs to be accurate, short, and understandable." )"
+    local ui_user_answered
+    if ! el_flag check "welcome-proofread-important" ; then
+        $guitool --info --text="$( eval_gettext "Important: The original sentences from the applications are probably not made by native english speakers, they may not have a perfect grammar and even worse, these developers don't even sleep. If you have good english skills <b>please improve the english</b> of the messages <b>before</b> doing translations in other languages, first because english is more important and second because english is the sentences from which every other languages are translated from, and so they needs to be accurate, short, and understandable." )"
+        el_flag add "welcome-proofread-important"
+    fi
 
 
     local translated_message
-    translated_message="$( printf "$( eval_gettext "Select the language variant (locale) that you want to translate to, your system is now set to the '%s' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nFor improve the original English messages use the 'en' value" )" "${LANG%%_*}" )"
+    translated_message="$( printf "$( eval_gettext "Select the language variant (locale) that you want to translate to, your system is now set to the '%s' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends sincerely to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nFor improve the original English messages use the 'en' value" )" "${LANG%%_*}" )"
 
     ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select Language" )" --text="$translated_message" || echo cancel )"
 
@@ -247,6 +253,7 @@ translate_elive(){
     el_debug
 
     local is_base_translation_avail _tr_app_d _tr_package_version_v
+
     _tr_app_d="$1"
     el_check_variables "_tr_app_d"
 
@@ -397,7 +404,7 @@ config_get(){
 commit_changes_elive(){
     el_debug
 
-    local _tr_app _tr_pot _tr_lang
+    local _tr_app _tr_pot _tr_lang _tr_app_d _tr_pot_f
     _tr_app="$1"
     _tr_pot_f="$2"
     _tr_app_d="$3"
@@ -760,6 +767,7 @@ verify_locale_supported(){
 ############################################################################
 clean_elive_dir(){
     el_debug
+     local ui_user_answered
 
     ui_user_answered="$( $guitool --list --width=400 --height=400 --text="$( eval_gettext "Select the option to remove your full translations directory or revert a previous commit (Important: If you have sent a wrong translation, you need to select this option)" )" --column="$( eval_gettext "Option" )" --column="$( eval_gettext "Description" )" "Purge" "$( eval_gettext "This option removes your full directory with your translations." )" "Revert" "$( eval_gettext "This option is to revert a wrongly sent translation." )" || echo cancel )"
     ui_answer_check
@@ -807,21 +815,25 @@ el_debug
 count_messages_completed(){
     el_debug
 
-    # Well, somebody should document this function, it gives me a few headaches to think on it and I dont have time for it right now :P
     local is_count_less_than count_msg_all_v count_msg_all_null_v count_msg_no_v count_msg_no_null_v
     local _tr_pot _item
     _tr_pot="$1"
-    _item="$2"
+    #_item="$2"
 
     el_check_variables "_tr_pot"
     el_check_files "$_tr_pot"
 
     unset fuzzy_msgs_v count_percent_v
 
+    # how much messages we have?
     count_msg_all_v="$( cat "$_tr_pot" | egrep "^msgid" | wc -l )"
 
+    # empty messages
     #count_msg_all_null_v=$( cat "$_tr_pot" | egrep "^msgid" | grep "msgid \"\"" | wc -l )
     count_msg_all_null_v="$(cat "$_tr_pot" | awk '{if(prev=="msgid \"\"" && $0==""){count++};prev=$0}END{print count}' )"
+
+    # how much fuzzy's we have?
+    fuzzy_msgs_v="$( cat "$_tr_pot" | awk -v FS="\n" -v RS="" '{ if ($1 ~ /^#.*fuzzy/) if ($2 ~ "^msgid ") print $1 }' | wc -l )"
 
     #count_msg_all_v=$( cat "$_item/default.pot" | egrep "^msgid" | wc -l ) # deprecated way: there's a merge if >= 100
     #count_msg_all_null_v=$( cat "$_item/default.pot" | egrep "^msgid" | grep "msgid \"\"" | wc -l )
@@ -830,14 +842,26 @@ count_messages_completed(){
         count_msg_all_null_v=0
     fi
 
+    # messages translated
     count_msg_no_v="$( cat "${_tr_pot}" | egrep "^msgstr" | wc -l )"
 
-    #count_msg_no_null_v=$( cat "${_tr_pot}" | egrep "^msgstr" | grep "msgstr \"\"" | wc -l )
+    # empty messages translated
+    #count_msg_no_null_v=$( cat "${_tr_pot}" | grep "^msgstr \"\"" | wc -l )
     count_msg_no_null_v="$( cat "${_tr_pot}" | awk '{if(prev=="msgstr \"\"" && $0==""){count++};prev=$0}END{print count}' )"
+    count_msg_no_null_v="$(( $count_msg_no_null_v + 1 ))" # for some reason the awk one needs to count one more
 
     [[ -z "$count_msg_no_null_v" ]] && count_msg_no_null_v=0
 
-    count_percent_v="$( echo -e "( ( $count_msg_no_v - $count_msg_no_null_v ) / ( $count_msg_all_v - $count_msg_all_null_v ) ) * 100" | bc -l )"
+    count_msg_translated_v="$(( $count_msg_no_v - $count_msg_no_null_v ))"
+    count_msg_translated_v="$(( $count_msg_translated_v - $fuzzy_msgs_v ))" # fuzzy's dont count as real translations
+    if [[ "$count_msg_translated_v" -lt 0 ]] ; then
+        count_msg_translated_v="0"
+    fi
+
+    count_msg_all_list_v="$(( $count_msg_all_v - $count_msg_all_null_v ))"
+
+    count_percent_v="$( echo -e "( $count_msg_translated_v / $count_msg_all_list_v ) * 100" | bc -l )"
+
 
     if [[ "$(( $count_msg_all_v - $count_msg_all_null_v ))" -gt "$(( $count_msg_no_v - $count_msg_no_null_v ))" ]] ; then
         is_count_less_than=1
@@ -853,11 +877,12 @@ count_messages_completed(){
         count_percent_v=0
     fi
 
-    fuzzy_msgs_v="$( cat "$_tr_pot" | awk -v FS="\n" -v RS="" '{ if ($1 == "#, fuzzy") if ($2 ~ "^msgid ") print $1 }' | wc -l )"
 }
 ############################################################################
 translate_new(){
     el_debug
+
+    local ui_user_answered
 
     local item_order_v item_lang_v tr_name_v tr_version_v tr_package_name_v tr_enabled_v tr_description_v is_showed_message_upgrade pid
     el_check_variables "tempfile"
@@ -870,6 +895,7 @@ translate_new(){
         rm -f "$tempfile"* 2>/dev/null
 
         echo -e "Clean" >> "$tempfile"
+        echo -e " " >> "$tempfile"
         echo -e "$( eval_gettext "Remove your Translations Directory, avoiding possible Errors or Conflicts." )" >> "$tempfile"
 
         #echo -e "Enlightenment 17" >> "$tempfile"
@@ -882,7 +908,7 @@ translate_new(){
         for item_v in ${translating_d}/elive/*
         do
             if [[ -s "${item_v}/settings" ]]; then
-                unset count_percent_v tr_name_v tr_version_v tr_description_v tr_package_name_v tr_enabled_v item_order_v
+                unset count_percent_v tr_name_v tr_version_v tr_description_v tr_package_name_v tr_enabled_v item_order_v tr_completed_v
 
                 tr_name_v="$( basename "$item_v" )"
                 tr_version_v="$( grep "version_min:::" "${item_v}/settings" | tail -1 | awk -v FS=":::" '{print $2}')"
@@ -915,7 +941,7 @@ translate_new(){
 
 
                 if [[ -z "$item_lang_v" ]]; then
-                    tr_description_v="NEW: ${tr_description_v} - 0 % completed"
+                    tr_completed_v="NEW: 0 % completed"
 
                 else
                     count_messages_completed "${item_v}/en.pot" "$item_v"
@@ -933,23 +959,23 @@ translate_new(){
 
                     # Normal description set for different percentages
                     if [[ "${count_percent_v}" = "100" ]] ; then
-                        tr_description_v="- Completed - Translation is not needed in the '${item_lang_v}' language, its ${count_percent_proofreaded_v}% is Proofreaded (en)."
+                        tr_completed_v="Completed - Not needed to translate in the '${item_lang_v}' language. The ${count_percent_proofreaded_v}% is Proofreaded (en)."
                         item_order_v=8
                     else
-                        tr_description_v="${tr_description_v} - ${count_percent_v}% completed (${item_lang_v}), ${count_percent_proofreaded_v}% Proofreaded (en)"
+                        tr_completed_v="${count_percent_v}% completed (${item_lang_v}), ${count_percent_proofreaded_v}% Proofreaded (en)"
                         item_order_v=2
                     fi
 
                     # If is fuzzy
                     if [[ "$fuzzy_msgs_v" -ge "1" ]] && [[ "$count_percent_v" = "100" ]] ; then
-                        tr_description_v="Needs ${fuzzy_msgs_v} grammar checks (${item_lang_v}), ${count_percent_proofreaded_v}% Proofreaded (en)"
+                        tr_completed_v="Needs ${fuzzy_msgs_v} grammar checks (${item_lang_v}), ${count_percent_proofreaded_v}% Proofreaded (en)"
                         item_order_v=4
                     fi
                 fi
 
 
-                if [[ -n "$tr_description_v" ]]; then
-                    echo -e "${tr_name_v}\n${tr_description_v}" >> "${tempfile}_order_${item_order_v}_${count_percent_proofreaded_inverse_v}_${count_percent_v}"
+                if [[ -n "$tr_completed_v" ]]; then
+                    echo -e "${tr_name_v}\n${tr_completed_v}\n${tr_description_v}" >> "${tempfile}_order_${item_order_v}_${count_percent_proofreaded_inverse_v}_${count_percent_v}"
                 fi
 
             fi
@@ -959,7 +985,7 @@ translate_new(){
 
 
         el_check_files "$tempfile"
-        ui_user_answered="$( cat "$tempfile" ${tempfile}_order_* | $guitool --list --width=780 --height=460 --title="$( eval_gettext "Select an Element." )" --text="$( eval_gettext "Select one element that you want to translate or to update in an existing translation.\nFirst elements are suggested, they are sorted in purpose" )" --column="$( eval_gettext "Element" )" --column="$( eval_gettext "Description" )" || echo cancel )"
+        ui_user_answered="$( cat "$tempfile" ${tempfile}_order_* | $guitool --list --width=780 --height=480 --title="$( eval_gettext "Select an Element." )" --text="$( eval_gettext "Select one element that you want to translate or to update in an existing translation.\nFirst elements are suggested, they are sorted in purpose" )" --column="$( eval_gettext "Element" )" --column="$( eval_gettext "Completed" )" --column="$( eval_gettext "Description" )" || echo cancel )"
         ui_answer_check
 
         rm -f "$tempfile" ${tempfile}_order_*
