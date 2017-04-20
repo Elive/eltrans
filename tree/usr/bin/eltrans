@@ -848,8 +848,8 @@ count_messages_completed(){
 
     # empty messages translated
     #count_msgstr_null_v=$( cat "${_tr_pot}" | grep "^msgstr \"\"" | wc -l )
-    count_msgstr_null_v="$( cat "${_tr_pot}" | awk '{if(prev=="msgstr \"\"" ){count++};prev=$0}END{print count}' )"
-    #count_msgstr_null_v="$(( $count_msgstr_null_v + 1 ))" # for some reason the awk one needs to count one more
+    count_msgstr_null_v="$( cat "${_tr_pot}" | awk '{if(prev=="msgstr \"\"" && $0=="" ){count++};prev=$0}END{print count}' )"
+    count_msgstr_null_v="$(( $count_msgstr_null_v + 1 ))" # the first empty msgid is counted but not the equivalent msgstr, so this is a hack
 
     [[ -z "$count_msgstr_null_v" ]] && count_msgstr_null_v=0
 
@@ -945,7 +945,13 @@ translate_new(){
                     tr_completed_v="NEW: 0 % completed"
 
                 else
+                    # debug purposes:
+                    #if [[ "$item_v" = *smb-browser ]] ; then
+                        #set -x
+                    #fi
                     count_messages_completed "${item_v}/en.pot" "$item_v"
+                    #set +x
+
                     count_percent_proofreaded_v="$count_percent_v"
                     count_percent_proofreaded_inverse_v="$(( 100 - ${count_percent_proofreaded_v} ))"
 
