@@ -225,13 +225,13 @@ preferences_edit(){
 select_language(){
     local ui_user_answered
     if ! el_flag check "welcome-proofread-important" ; then
-        $guitool --info --text="$( eval_gettext "Important: The original sentences from the applications are probably not made by native english speakers, they may not have a perfect grammar and even worse, these developers don't even sleep. If you have good english skills <b>please improve the english</b> of the messages <b>before</b> doing translations in other languages, first because english is more important and second because english is the sentences from which every other languages are translated from, and so they needs to be accurate, short, and understandable." )"
+        $guitool --info --text="$( eval_gettext "Important: The original sentences from the applications are probably not made by native English speakers, they may not have a perfect grammar and even worse, these developers don't even sleep. If you have good English skills <b>please improve the English</b> of the messages <b>before</b> doing translations in other languages, first because English is more important and second because English is the sentences from which every other languages are translated from, and so they needs to be accurate, short, and understandable." )"
         el_flag add "welcome-proofread-important"
     fi
 
 
     local translated_message
-    translated_message="$( printf "$( eval_gettext "Select the language variant (locale) that you want to translate to, your system is now set to the '%s' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends sincerely to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nFor improve the original English messages use the 'en' value" )" "${LANG%%_*}" )"
+    translated_message="$( printf "$( eval_gettext "Select the language variant (locale) that you want to translate to, your system is now set to the '%s' value, but you can use a more specific language like 'pt__BR' for the Brazilian variant of Portuguese language.\n\nWe recommends sincerely to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nFor improve the original English messages use the 'en' value" )" "${LANG%%_*}" )"
 
     ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select Language" )" --text="$translated_message" || echo cancel )"
 
@@ -421,7 +421,7 @@ commit_changes_elive(){
         #$guitool --info --text="$message_install_required"
     #fi
 
-    if ! $guitool --question --text="$( eval_gettext "To send your translation to Elive is an automated process, on that way everybody can profit of your translation on their Elive too\n\nJust create yourself an account at http://www.elivecd.org/collaborate\n\nNote that if you wait too much for send it and another person works on the same one, your translation can be uncompatible due to a conflict in the file, so its a good practice to send updated version from time to time instead of wait that you finish entirely the translation, only the translated messages will be included on the application\n\nFinally, only send them if the grammar is correctly used, even change the wording in the english version if you found it required\n\nSend translations now?" )" ; then
+    if ! $guitool --question --text="$( eval_gettext "To send your translation to Elive is an automated process, on that way everybody can profit of your translation on their Elive too\n\nJust create yourself an account at http://www.elivecd.org/collaborate\n\nNote that if you wait too much for send it and another person works on the same one, your translation can be not compatible due to a conflict in the file, so its a good practice to send updated version from time to time instead of wait that you finish entirely the translation, only the translated messages will be included on the application\n\nFinally, only send them if the grammar is correctly used, even change the wording in the English version if you found it required\n\nSend translations now?" )" ; then
         return
     fi
 
@@ -451,7 +451,7 @@ commit_changes_elive(){
     # verify that english proofreading are really english
     if [[ "$language_user" = "en" ]] ; then
         if file "${_tr_pot_f}" | grep -qi "UTF-8 Unicode text" ; then
-            $guitool --error --text="$( eval_gettext "Your translation to English (proofreading of english, so ugly-english to good-english) was not detected to be English but another language instead, if you want to do translations to spanish for example you need to select the 'es' keycode, but the 'en' one is only used for english proofreading. We are not going to send this translation because of this detected problem, if you think that this is a bug and your translation is correctly an english one, please report this problem to the bugs website of Elive and make sure to backup your translator copy. Thank you" )"
+            $guitool --error --text="$( eval_gettext "Your translation to English (proofreading of English, so ugly-English to good-English) was not detected to be English but another language instead, if you want to do translations to Spanish for example you need to select the 'es' key-code, but the 'en' one is only used for English proofreading. We are not going to send this translation because of this detected problem, if you think that this is a bug and your translation is correctly an English one, please report this problem to the bugs website of Elive and make sure to backup your translator copy. Thank you" )"
             return
         fi
     fi
@@ -648,7 +648,7 @@ translate_e17_new_language(){
 
 
     local translated_message
-    translated_message="$( printf "$( eval_gettext "Select the language variant (locale) that you want to translate to, your system is now set to the '%s' value, but you can use a more specific language like 'pt__BR' for the brazilian variant of portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nNote: You can do translations to English too (clean english) using the 'en' value" )" "${LANG%%_*}" )"
+    translated_message="$( printf "$( eval_gettext "Select the language variant (locale) that you want to translate to, your system is now set to the '%s' value, but you can use a more specific language like 'pt__BR' for the Brazilian variant of Portuguese language.\n\nWe recommends <b>sincerely</b> to just use short value because if not, your translation don't cover the rest of variants, use the long form only if you really want to made a specific version of your translation\n\nNote: You can do translations to English too (clean english) using the 'en' value" )" "${LANG%%_*}" )"
 
     ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select Language" )" --text="$translated_message" || echo cancel )"
 
