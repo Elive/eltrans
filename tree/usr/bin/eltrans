@@ -163,7 +163,7 @@ dependencies_install(){
 
 ############################################################################
 instructions_show(){
-    echo -e "$( eval_gettext "Original Messages:
+    echo -e "Original Messages:
 ==================
 The original messages are maybe not spelled correctly, or not clearly understandatable, think about that the messages needs to be as short as possible and simple to understand, complex sentences are not good (and programmers explain things deeply, sometimes).
 
@@ -189,7 +189,7 @@ Moving Faster:
 
 For moving faster to the next message, press TAB, the down-key, and again TAB
 
-    " )" | $guitool --text-info --editable --width=420 --height=500 1>/dev/null &
+    " | $guitool --text-info --editable --width=420 --height=500 1>/dev/null &
 
 }
 ############################################################################
