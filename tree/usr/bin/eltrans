@@ -84,7 +84,9 @@ exit_error(){
 
     el_error "$(cat "${logs_err}" )"
     $guitool --error --text="Error: $(cat "${logs_err}" )"
-    exit_ok
+    killall languagetool 2>/dev/null || true
+    killall languagetool-tray 2>/dev/null || true
+    exit
 }
 ############################################################################
 exit_ok(){
@@ -98,9 +100,37 @@ exit_ok(){
     fi
 
     rm -f "${logs_err}" "$tempfile"*
+    rm -f "$lockfile"
 
     exit 0
 }
+
+# Lock system (good one) {{{
+lockfile="/tmp/.$(basename $0)-${USER}.lock"
+
+rm -f "$lockfile"
+
+if [[ -r "$lockfile" ]] ; then
+    PROCCESS="$(cat $lockfile)"
+else
+    PROCCESS=" "
+fi
+if (ps up $PROCCESS) 1>/dev/null 2>&1 ; then
+    el_error "$(basename $0) already running"
+    exit
+else
+    echo $$ > "$lockfile"
+fi
+
+# traps needs to be after the lock verification, in order to not remove it when we are already running
+trap "exit_ok" EXIT
+trap "exit_error" 1 3 5 6 14 15 ERR TERM
+
+# SET the lock file
+echo "$$" > "$lockfile"
+
+
+# end lock system }}}
 ############################################################################
 dependencies_install(){
     el_debug
@@ -499,7 +529,7 @@ EOF
         if [[ -s "${logs_err}" ]]; then
             cat "${logs_err}" | $guitool --text-info --width=650 --height=400
             rm -f "${logs_err}"
-            exit_ok
+            exit
         fi
     fi
 
@@ -1081,4 +1111,6 @@ main "$@"
 
 exit_ok
 
+
+# vim: set foldmethod=marker :
 
