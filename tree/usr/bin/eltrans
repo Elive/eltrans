@@ -66,7 +66,7 @@ ui_answer_check(){
     el_debug
 
     if [[ "$ui_user_answered" = "cancel" ]] ; then
-        $guitool --info --tex="$( eval_gettext "Thanks for collaborating with the Elive translations." )"
+        $guitool --info --text="$( eval_gettext "Thanks for collaborating with the Elive translations." )"
         exit 0
     fi
 
