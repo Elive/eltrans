@@ -478,14 +478,6 @@ commit_changes_elive(){
         echo "$( eval_gettext "Try to change the configuration in the editor for being UTF-8" )" >> "${logs_err}"
     fi
 
-    # verify that english proofreading are really english
-    if [[ "$language_user" = "en" ]] ; then
-        if file "${_tr_pot_f}" | grep -qi "UTF-8 Unicode text" ; then
-            $guitool --error --text="$( eval_gettext "Your translation to English (proofreading of English, so ugly-English to good-English) was not detected to be English but another language instead, if you want to do translations to Spanish for example you need to select the 'es' key-code, but the 'en' one is only used for English proofreading. We are not going to send this translation because of this detected problem, if you think that this is a bug and your translation is correctly an English one, please report this problem to the bugs website of Elive and make sure to backup your translator copy. Thank you" )"
-            return
-        fi
-    fi
-
     if [[ -s "${logs_err}" ]]; then
         $guitool --info --text="$( eval_gettext "I have found Warnings or Errors in your translation, please read them carefully and try to fix the problem manually. You will see a window with the details of these errors. These messages include in the first field the exact number of the line of the problem. Enable line-number visualization in your editor if it is not enabled." )"
 
