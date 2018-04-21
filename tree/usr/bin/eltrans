@@ -275,6 +275,7 @@ select_language(){
 
     if [[ "$language_user" = "en" ]] ; then
         $guitool --info --text="$( eval_gettext "Thank you for collaborating in the proofreading of the messages. You will have in your systray a grammar checker tool, if you think that the original messages are not correctly spelled or not giving the correct information to the end-user in order to be correctly understood, feel free to improve it, if you don't understand what the messages means you can enter in the IRC chat channel and ask to the developers about their meaning." )"
+        $guitool --info --text="$( eval_gettext "Tip: In order to have the most gramatically accurate sentences which helps a lot to the automated pre-translations, try to write your english sentence and verify the automated translation to a common language in the other box, if the translation looks good made, the structure is correct and the pre-translations will be generated more accurately, if the translations doesn't looks correct, try to change the conflicting word or the structure of the sentence, this will save a lot of time to all the translators and make your messages more clear." )"
     fi
 
 }
