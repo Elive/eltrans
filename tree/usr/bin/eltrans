@@ -1062,8 +1062,10 @@ main(){
     fi
 
     # check version
-    if el_package_newer_check eltrans ; then
-        $guitool --info --text="$( eval_gettext "There is a newer version of eltrans, please update it" )"
+    if el_package_update_last_version -c "eltrans" ; then
+        if el_package_newer_check "eltrans" ; then
+            $guitool --info --text="$( eval_gettext "There is a newer version of eltrans, please update it" )"
+        fi
     fi
 
     # check internet
