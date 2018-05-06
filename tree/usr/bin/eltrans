@@ -102,6 +102,7 @@ exit_ok(){
     rm -f "${logs_err}" "$tempfile"*
     rm -f "$lockfile"
 
+    killall languagetool-tray 2>/dev/null
     exit 0
 }
 
