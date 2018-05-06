@@ -989,16 +989,16 @@ translate_new(){
 
                     # Normal description set for different percentages
                     if [[ "${count_percent_v}" = "100" ]] ; then
-                        tr_completed_v="Completed - Not needed translations for '${item_lang_v}'. The ${count_percent_proofreaded_v}% is Proofreaded (en)."
+                        tr_completed_v="Completed - Not needed translations for '${item_lang_v}'. The ${count_percent_proofreaded_v}% is Proofread (en)."
                         item_order_v=8
                     else
-                        tr_completed_v="${count_percent_v}% completed (${item_lang_v}), ${count_percent_proofreaded_v}% Proofreaded (en)"
+                        tr_completed_v="${count_percent_v}% completed (${item_lang_v}), ${count_percent_proofreaded_v}% Proofread (en)"
                         item_order_v=2
                     fi
 
                     # If is fuzzy
                     if [[ "$count_msg_fuzzy_v" -ge "1" ]] && [[ "$count_percent_v" = "100" ]] ; then
-                        tr_completed_v="Needs ${count_msg_fuzzy_v} grammar checks (${item_lang_v}), ${count_percent_proofreaded_v}% Proofreaded (en)"
+                        tr_completed_v="Needs ${count_msg_fuzzy_v} grammar checks (${item_lang_v}), ${count_percent_proofreaded_v}% Proofread (en)"
                         item_order_v=4
                     fi
                 fi
