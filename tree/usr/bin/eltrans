@@ -236,7 +236,7 @@ preferences_edit(){
     pref_user_cached_v="$( cat "$preferences_f" | grep username | sed 's/^.*:://g' )"
     pref_pass_cached_v="$( cat "$preferences_f" | grep password | sed 's/^.*:://g' )"
 
-    #$guitool --info --text="$( eval_gettext "To collaborate with Elive making translations, you need to create yourself an account in http://www.elivecd.org/collaborate\n\nThanks a lot for your collaboration" )"
+    #$guitool --info --text="$( eval_gettext "To collaborate with Elive making translations, you need to create yourself an account in https://www.elivecd.org/collaborate\n\nThanks a lot for your collaboration" )"
     ui_user_answered="$( $guitool --entry --title="$( eval_gettext "Elive translator account" )" --text="$( eval_gettext "Enter the user name of your Elive translator account" )" --entry-text="$pref_user_cached_v" || echo cancel )"
     ui_answer_check
     newuser="$ui_user_answered"
@@ -1082,8 +1082,8 @@ main(){
         #$guitool --info --text="$( eval_gettext "You need an eltrans account in order to make translations, please create it first" )"
         $guitool --info --text="$( eval_gettext "In order to translate Elive, you need an account. You can have one set up by sending an e-mail to Thanatermesis to request it. Include in your message the language to which you want to translate, a user name and a password." )"
 
-        #/etc/alternatives/x-www-browser "http://www.elivecd.org/collaborate" &
-        /etc/alternatives/x-www-browser "http://www.elivecd.org/contact" &
+        #/etc/alternatives/x-www-browser "https://www.elivecd.org/collaborate" &
+        /etc/alternatives/x-www-browser "https://www.elivecd.org/contact" &
         sleep 30
 
         $guitool --info --text="$( eval_gettext "Enter your user name and password when you have received it." )"
