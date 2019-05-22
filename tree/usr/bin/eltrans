@@ -84,8 +84,10 @@ exit_error(){
 
     el_error "$(cat "${logs_err}" )"
     $guitool --error --text="Error: $(cat "${logs_err}" )"
-    killall languagetool 2>/dev/null || true
-    killall languagetool-tray 2>/dev/null || true
+    if [[ -x "$(which languagetool)" ]] ; then
+        killall languagetool 2>/dev/null || true
+        killall languagetool-tray 2>/dev/null || true
+    fi
     exit
 }
 ############################################################################
@@ -102,7 +104,9 @@ exit_ok(){
     rm -f "${logs_err}" "$tempfile"*
     rm -f "$lockfile"
 
-    killall languagetool-tray 2>/dev/null
+    if [[ -x "$(which languagetool)" ]] ; then
+        killall languagetool-tray 2>/dev/null
+    fi
     exit 0
 }
 
@@ -155,9 +159,10 @@ dependencies_install(){
         el_array_member_add "scite" "${dependencies[@]}" ; dependencies=("${_out[@]}")
     fi
 
-    if ! el_dependencies_check "languagetool" ; then
-        el_array_member_add "languagetool" "${dependencies[@]}" ; dependencies=("${_out[@]}")
-    fi
+    # this dont works anymore on buster, remove dependency
+    #if ! el_dependencies_check "languagetool" ; then
+        #el_array_member_add "languagetool" "${dependencies[@]}" ; dependencies=("${_out[@]}")
+    #fi
     if ! el_dependencies_check "poedit" ; then
         el_array_member_add "poedit" "${dependencies[@]}" ; dependencies=("${_out[@]}")
     fi
@@ -303,8 +308,10 @@ translate_elive(){
     cd "$_tr_app_d"
 
     # run extra apps
-    if ! ps aux | grep -v grep | grep -q "java.*languagetool.*tray" ; then
-        languagetool-tray &
+    if [[ -x "$(which languagetool)" ]] ; then
+        if ! ps aux | grep -v grep | grep -q "java.*languagetool.*tray" ; then
+            languagetool-tray &
+        fi
     fi
 
     mkdir -p "$_tr_app_d/tmp"
