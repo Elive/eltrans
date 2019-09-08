@@ -52,7 +52,7 @@ export eltrans_version_v="3"
 # update it
 if el_package_update_last_version eltrans ; then
     #local message_update
-    message_update="$( printf "$( eval_gettext "Updated eltrans. Please restart." )" )"
+    message_update="$( printf "$( eval_gettext "Updated eltrans. Please restart it." )" )"
     $guitool --info --text="$message_update"
     exit
 fi
@@ -1090,7 +1090,8 @@ main(){
         $guitool --info --text="$( eval_gettext "In order to translate Elive, you need an account. You can have one set up by sending an e-mail to Thanatermesis to request it. Include in your message the language to which you want to translate, a user name and a password." )"
 
         #/etc/alternatives/x-www-browser "https://www.elivecd.org/collaborate" &
-        /etc/alternatives/x-www-browser "https://www.elivecd.org/contact" &
+        #/etc/alternatives/x-www-browser "https://www.elivecd.org/contact" &
+        web-launcher "https://www.elivecd.org/contact" &
         sleep 30
 
         $guitool --info --text="$( eval_gettext "Enter your user name and password when you have received it." )"
