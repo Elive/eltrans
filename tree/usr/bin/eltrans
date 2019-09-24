@@ -586,7 +586,7 @@ EOF
     rm -f "${temp_script}"
 
     if [[ -s "${logs_err}" ]]; then
-        $guitool --error --text="$( eval_gettext "Error downloading the translations of Elive. Are both your user name and the password correct? Check the error message, try again later or remove your directory of translations in Projects/translations." )"
+        $guitool --error --text="$( eval_gettext "We cannot download the translations. If you don't have a translator account, you need to request it to Thanatermesis, contact him from the Elive website. If your account is valid, maybe there's issues with the server and you should try again later." )"
         cat "${logs_err}" | $guitool --text-info --width=650 --height=400
         rm -f "${logs_err}"
 
