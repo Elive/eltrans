@@ -29,6 +29,9 @@ el_make_environment
 TEXTDOMAIN="eltrans"
 export TEXTDOMAIN
 
+zenity --error --text="Eltrans is temporally disabled, it needs a big rewrite, stay tunned!"
+exit 1
+
 
 pwd_orig="$(pwd)"
 app_poeditor=poeditor
