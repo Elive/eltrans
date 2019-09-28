@@ -852,7 +852,7 @@ count_messages_completed(){
     #_item="$2"
 
     el_check_variables "_tr_pot"
-    el_check_files "$_tr_pot"
+    #el_check_files "$_tr_pot"
 
     unset count_msg_fuzzy_v count_percent_v
 
