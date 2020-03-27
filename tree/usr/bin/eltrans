@@ -29,7 +29,7 @@ el_make_environment
 TEXTDOMAIN="eltrans"
 export TEXTDOMAIN
 
-zenity --error --text="Eltrans is temporally disabled, it needs a big rewrite, stay tunned!"
+zenity --error --text="Eltrans is temporarily disabled, it needs a big rewrite, stay tuned!"
 exit 1
 
 

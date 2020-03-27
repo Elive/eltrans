@@ -2,7 +2,7 @@
 Type=Application
 Encoding=UTF-8
 Name=Eltrans
-GenericName=Elive Translator tool
+GenericName=Elive translation tool
 GenericName[vi]=Elive Dịch công cụ
 GenericName[uk]=Elive Translator інструмент
 GenericName[sv]=Elive Översättare verktyg
@@ -23,7 +23,7 @@ GenericName[hi]=Elive अनुवादक उपकरण
 GenericName[iw]=Elive מתרגם כלי
 GenericName[el]=Μεταφραστής Elive εργαλείο
 GenericName[de]=Elive Übersetzer-Tool
-GenericName[fr]=Elive outil Translator
+GenericName[fr]=Outil traductions pour Elive
 GenericName[fi]=Elive Kääntäjä väline
 GenericName[tl]=Elive Translator kasangkapan
 GenericName[nl]=Elive Translator instrument
