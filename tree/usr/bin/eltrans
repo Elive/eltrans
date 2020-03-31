@@ -22,7 +22,9 @@
 
 # remove reported issues in github
 
+SOURCE="$0"
 source /usr/lib/elive-tools/functions
+REPORTS="1"
 el_make_environment
 
 . gettext.sh
