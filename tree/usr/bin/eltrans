@@ -265,7 +265,7 @@ preferences_edit(){
     ui_answer_check
     newpass="$ui_user_answered"
 
-    if el_check_variables "newuser,newpass" ; then
+    if el_check_variables "newuser|newpass" ; then
         echo -e "username::${newuser}\npassword::${newpass}" > "$preferences_f"
         config_get
     else
@@ -423,7 +423,7 @@ translate_elive(){
     #_tr_pot="$2"
     #_tr_lang="$3"
 
-    #el_check_variables "_tr_lang,_tr_pot,_tr_app"
+    #el_check_variables "_tr_lang|_tr_pot|_tr_app"
     #el_check_files "${_tr_pot}"
 
     #svn_diff="$( svn diff | grep -E "(^-|^\+)" | grep -vE "(^---|^\+\+\+)" | grep -vE "(POT-Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; )" )"
@@ -562,7 +562,7 @@ EOF
 add_translations_dir_e17(){
     el_debug
 
-    el_check_variables "translating_d,translating_e17_worked_d"
+    el_check_variables "translating_d|translating_e17_worked_d"
 
     mkdir -p "${translating_d}"
     cd "$translating_d"
@@ -801,7 +801,7 @@ verify_locale_supported(){
     _tr_lang="$1"
     _function_extra="$2"
 
-    el_check_variables "_function_extra,_tr_lang"
+    el_check_variables "_function_extra|_tr_lang"
 
     if ! cat "/usr/share/i18n/SUPPORTED" | tr '.' ' ' | tr '@' ' ' | awk '{print $1}' | grep -q "${_tr_lang}"  ; then
         $guitool --error --text="$( eval_gettext "Error: The language you selected is not supported by your system. Choose from the list of supported languages:" )""
