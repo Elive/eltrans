@@ -476,7 +476,7 @@ commit_changes_elive(){
     #fi
 
     if ! $guitool --question --text="$( eval_gettext "Sending your translation to Elive is an automated process. That way everybody can take advantage of your translation in their Elive, too.\n\nIf you want to contribute, create an account on http://www.elivecd.org/collaborate.\n\nYou should not wait too long to send your translation. Someone else may work on the same messages, and the resulting versions may not be compatible. When you have finished translating some messages, send them right away. Only translated messages willl be included in the application.\n\nPlease only send grammatically correct messages. If necessary, change the English message texts.\n\nSend translations now?" )" ; then
-        return
+        return 0
     fi
 
     if ! el_check_files "$preferences_f" ; then
