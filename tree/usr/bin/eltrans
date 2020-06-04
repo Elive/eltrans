@@ -2,10 +2,10 @@
 # FIXME: do not allow translations when the english is not reviewed yet, at least a minimum (and warning when there's remaining ones)
 # FIXME: automatic notification to translators when there's new messages ?
 # FIXME: proofreading mode: if the translator has a question, suggest to use xchat for it
+# FIXME: disable all e17 parts or at least use the newer E git
 
 # MIGRATION:
 # TODO  COMMENT COMMENT!
-# TODO: change yes'es to booleans check
 # TODO: improve variablenames and funciontnames
 # TODO: do not use $1 (et al) variables
 # TODO: read the code searching bugs or bad structure
@@ -33,7 +33,6 @@ export TEXTDOMAIN
 
 
 pwd_orig="$(pwd)"
-app_poeditor=poeditor
 translating_d="$HOME/Projects/translations"
 translating_e17_d="${translating_d}/e17"
 translating_elive_d="${translating_d}/elive"
@@ -44,33 +43,16 @@ tempfile="${tempdir}/tempfile-$$"
 logs_err="${tempdir}/logs-err.txt"
 temp_mo="${tempdir}/motemp.mo"
 temp_script="${tempdir}/script.sh"
-: ${guitool=zenity}
-export guitool
-mode_only_e17_v="no" # Warning: This option inhabilite the Elive translators part, set it to "yes" if you want to use this tool ONLY for Enlightenment 17 translations
+
+# This option inhabilite the Elive translators part, set it to "yes" if you want to use this tool ONLY for Enlightenment 17 translations
+is_mode_only_e17="0"
 
 # version of this tool, for compatibility
-export eltrans_version_v="3"
+export eltrans_version_v="4"
 
 # update it
 #if el_package_update_last_version eltrans ; then
-el_package_upgrade_fast 120 normal "eltrans"
-
-####### XXX
-####### XXX
-####### XXX
-####### XXX
-####### XXX
-####### XXX
-####### XXX
-zenity --error --text="Eltrans is temporarily disabled, it needs a big rewrite, stay tuned!"
-exit 1
-####### XXX
-####### XXX
-####### XXX
-####### XXX
-####### XXX
-####### XXX
-####### XXX
+el_package_upgrade_fast 180 normal "eltrans"
 
 
 rm -rf "${tempdir}"
@@ -99,6 +81,7 @@ exit_error(){
 
     el_error "$(cat "${logs_err}" )"
     $guitool --error --text="Error: $(cat "${logs_err}" )"
+
     if [[ -x "$(which languagetool)" ]] ; then
         killall languagetool 2>/dev/null || true
         killall languagetool-tray 2>/dev/null || true
@@ -127,7 +110,6 @@ exit_ok(){
 
 # Lock system (good one) {{{
 lockfile="/tmp/.$(basename $0)-${USER}.lock"
-
 rm -f "$lockfile"
 
 if [[ -r "$lockfile" ]] ; then
@@ -155,8 +137,10 @@ echo "$$" > "$lockfile"
 dependencies_install(){
     el_debug
 
-    local packagename _lang dependencies ui_user_answered package_dict
+    local packagename _lang ui_user_answered package_dict
     _lang="$1"
+
+    unset dependencies
 
     el_check_variables "_lang"
 
@@ -178,14 +162,14 @@ dependencies_install(){
     #if ! el_dependencies_check "languagetool" ; then
         #el_array_member_add "languagetool" "${dependencies[@]}" ; dependencies=("${_out[@]}")
     #fi
-    if ! el_dependencies_check "poedit" ; then
+    if ! el_dependencies_check "poeditor" ; then
         el_array_member_add "poedit" "${dependencies[@]}" ; dependencies=("${_out[@]}")
     fi
 
     # spell package
     # FIXME: wee need to add something in our conf file to say "yes, it is already installed", this check is not enough
     if ! grep -q "myspell_installed: ${_lang}" "${preferences_f}" ; then
-        if ! dpkg -l | grep "myspell-${_lang}" | grep -q "^ii" ; then
+        if ! dpkg -l | grep "myspell-${_lang}" | grep -qsE "^(ii|hi)" ; then
 
             package_dict="$( apt-cache search myspell-${_lang} | grep "^myspell" )"
             if [[ -n "$package_dict" ]] ; then
@@ -247,7 +231,7 @@ For moving faster to the next message, press TAB, the down-key, and again TAB
 preferences_edit(){
     el_debug
 
-    local newpass newuser ui_answer_check
+    local newpass newuser
     el_check_variables "preferences_f"
 
     mkdir -p "${preferences_f%/*}"
@@ -390,7 +374,7 @@ translate_elive(){
     sed -i '/msgstr ""[^[:blank:]]/s|msgstr ""*|msgstr "|g' "$_tr_app_d/${language_user}.pot"
 
     # run poedit
-    "$app_poeditor" "$_tr_app_d/${language_user}.pot"
+    poeditor "$_tr_app_d/${language_user}.pot"
 
     #
     # FIXES post
@@ -714,7 +698,7 @@ translate_e17_new_language(){
                 msgmerge -U "$translating_e17_worked_d/${language_user}.pot" "$translating_e17_worked_d/enlightenment.pot"
                 #rm $translating_e17_worked_d/${language_user}.old.pot
 
-                $app_poeditor "$translating_e17_worked_d/${language_user}.pot"
+                poeditor "$translating_e17_worked_d/${language_user}.pot"
 
                 if ! grep -iq "Elive Translation tool" "$translating_e17_worked_d/${language_user}.pot" ; then
                     sed -i "3a# \n# This translation was created/edited with the Elive translation tool" "$translating_e17_worked_d/${language_user}.pot"
@@ -750,7 +734,7 @@ translate_e17_new_language(){
 
         rm -rf "$translating_e17_worked_d/enlightenment.pot" "$translating_e17_worked_d/tmp"
 
-        $app_poeditor "$translating_e17_worked_d/${language_user}.pot"
+        poeditor "$translating_e17_worked_d/${language_user}.pot"
 
         if ! grep -iq "Elive Translation tool" "$translating_e17_worked_d/${language_user}.pot" ; then
             sed -i "3a# \n# This translator was created/edited with the Elive translation tool" "$translating_e17_worked_d/${language_user}.pot"
@@ -847,7 +831,7 @@ clean_elive_dir(){
 ############################################################################
 ## nobody uses that function? better to comment it then
 #translation_edit(){
-el_debug
+#el_debug
 
 #$app_poeditor "$1"
 
@@ -935,7 +919,7 @@ translate_new(){
     el_check_variables "tempfile"
     el_check_dirs "$translating_d"
 
-    if [[ "$mode_only_e17_v" = "yes" ]] ; then
+    if ((is_mode_only_e17)) ; then
         ui_user_answered="Enlightenment 17"
 
     else
@@ -1041,7 +1025,7 @@ translate_new(){
         ui_user_answered="$( cat "$tempfile" ${tempfile}_order_* | $guitool --list --width=820 --height=520 --title="$( eval_gettext "Select an element." )" --text="$( eval_gettext "Select an element that you want to translate or to update in an already existing translation.\nThe first elements in the list are the most urgent ones, they are sorted like this on purpose." )" --column="$( eval_gettext "Element" )" --column="$( eval_gettext "Complete" )" --column="$( eval_gettext "Description" )" || echo cancel )"
         ui_answer_check
 
-        rm -f "$tempfile" ${tempfile}_order_*
+        rm -f "$tempfile" ${tempfile}_order_* || true
 
     fi
 
@@ -1075,7 +1059,7 @@ main(){
         el_dependencies_install "zenity"
     fi
 
-    #if [[ "$mode_only_e17_v" = "yes" ]] ; then
+    #if ((is_mode_only_e17)) ; then
     #translate_new
     #exit 0
     #fi
@@ -1128,7 +1112,6 @@ main(){
 
 main "$@"
 
-exit_ok
 
 
 # vim: set foldmethod=marker :
