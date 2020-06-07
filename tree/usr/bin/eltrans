@@ -242,7 +242,7 @@ For moving faster to the next message, press TAB, the down-key, and again TAB
 
     " )"
 
-    echo "$help_main" | $guitool --text-info --title="How to use eltrans" --width=480 --height=500 1>/dev/null &
+    echo "$help_main" | $guitool --text-info --title="How to use eltrans" --width=540 --height=500 1>/dev/null &
 
 }
 ############################################################################
@@ -372,14 +372,15 @@ translate_elive(){
     fi
 
     # recent changes in last 3 days:
-    recent_changes_diffed="$( svn diff -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" )"
+    recent_changes_diffed="$( svn diff -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" | grep "^+msgstr " )"
     recent_changes_authors="$( svn log -v -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" | colors-remove | grep -E "^r[[:digit:]]+ " | awk '{print $3}' | sort -u | grep "[[:alnum:]]" | tr '\n' ' ' )"
+    read -r recent_changes_authors <<< "$recent_changes_authors"
 
     # if somebody also edited the same translation in the last 3 days, tell the translator about it
     if [[ -n "$recent_changes_diffed" ]] ; then
         # only me? ignore...
         if [[ "$recent_changes_authors" != "Thanatermesis" ]] ; then
-            $guitool --warning --text="$( eval_gettext "The file that you want to translate, has been modified in the last 3 days by other collaborators. You should not worry about this message and is only a notification to know about that other translator worked recently on the same file in order to avoid possible conflicts between versions translated. These translators was:" ) $recent_changes_authors"
+            $guitool --warning --text="$( eval_gettext "The file that you want to translate, has been modified in the last 3 days by other collaborators. You should not worry about this message and is only a notification to know about that other translator worked recently on the same file in order to avoid possible conflicts between versions translated.\n\nThese translators was:" ) '$recent_changes_authors' "
 
             if ! $guitool --question --text="$( eval_gettext "Do you want to continue editing this translation? Otherwise you can select another element to translate in the list" )" ; then
                 return 0
@@ -433,44 +434,46 @@ translate_elive(){
 
     rm -f "$_tr_app_d/${language_user}.mo"
 
-    # FIXME: temporally disabled the installing of translations because they are simply broken, they don't works good, WTF stupid crappy gksu
-    #translation_elive_install "$( basename $_tr_app_d )" "$_tr_app_d/${language_user}.po" "$language_user"
+    translation_elive_install "$( basename $_tr_app_d )" "$_tr_app_d/${language_user}.po" "$language_user"
     commit_changes_elive "$( basename $_tr_app_d )" "${language_user}.po" "$_tr_app_d" "${language_user}"
 
     update_translations
     translate_new
 }
 ############################################################################
-#translation_elive_install(){
-    #el_debug
+translation_elive_install(){
+    el_debug
 
-    #local _tr_app _tr_po _tr_lang svn_diff
-    #_tr_app="$1"
-    #_tr_po="$2"
-    #_tr_lang="$3"
+    local _tr_app _tr_po _tr_lang svndiff
+    _tr_app="$1"
+    _tr_po="$2"
+    _tr_lang="$3"
 
-    #el_check_variables "_tr_lang|_tr_po|_tr_app"
-    #el_check_files "${_tr_po}"
+    el_check_variables "_tr_lang|_tr_po|_tr_app"
+    el_check_files "${_tr_po}"
 
-    #svn_diff="$( svn diff | grep -E "(^-|^\+)" | grep -vE "(^---|^\+\+\+)" | grep -vE "(PO-Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; )" )"
+    svndiff="$( svn diff | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" || true )"
 
-    #if [[ -n "$svn_diff" ]] ; then
-        #if $guitool --question --text="$( eval_gettext "Do you want to use your translation in your system now ? It is strongly suggested to test yourself the made translations before to send them to Elive in order to check that works without problems." )" ; then
+    if [[ -n "$svndiff" ]] ; then
+        if $guitool --question --text="$( eval_gettext "Do you want to use your translation in your system now? It is suggested to test yourself the made translations before to send them to Elive in order to verify that everything looks correct and consistent." )" ; then
 
-            #if ! [[ -d "/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES" ]] ; then
-                #gksu "mkdir -p /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES"
-            #fi
+            if ! [[ -d "/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES" ]] ; then
+                gksu "mkdir -p /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES"
+            fi
 
-            #if gksu "msgfmt ${_tr_po} -o /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_app}.mo" ; then
-                #is_translation_installed=1
-                #$guitool --info --text="$( eval_gettext "Your translation is installed in your system, you can use it now" )"
-            #else
-                #$guitool --error
-            #fi
-        #fi
-    #fi
+            #msgfmt ${_tr_po} -o /tmp/.$(basename $0)-${USER}-${_tr_app}.mo
 
-#}
+
+            if gksu "msgfmt ${_tr_po} -o /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_app}.mo" ; then
+                is_translation_installed=1
+                $guitool --info --text="$( eval_gettext "Your translation is installed in your system, you can use it now" )"
+            else
+                $guitool --error
+            fi
+        fi
+    fi
+
+}
 ############################################################################
 config_get(){
     pref_user_cached_v="$( cat "$preferences_f" | LC_ALL=C grep "username" | sed 's/^.*:://g' )"
@@ -668,7 +671,7 @@ svn cleanup
 echo
 
 echo "Updating..."
-LC_ALL=C svn update --non-interactive --username "${pref_user_cached_v}" --password "${pref_pass_cached_v}" --accept theirs-full 2>&1 | tee "${logs_err}"
+LC_ALL=C timeout 120 svn update --non-interactive --username "${pref_user_cached_v}" --password "${pref_pass_cached_v}" --accept theirs-full 2>&1 | tee "${logs_err}"
 
 sleep 3
 EOF
@@ -976,7 +979,7 @@ translate_new(){
 
                 # ignore deactivated translations
                 if ! LC_ALL=C  grep -qs "^enabled:::yes$" "${item_v}/settings" ; then
-                    el_explain 0 "note: translation for __${tr_name_v}__ is actually deactivated on purpose, not including it..."
+                    el_debug "note: translation for '${tr_name_v}' is actually deactivated on purpose, not including it..."
                     continue
                 fi
 
