@@ -277,13 +277,6 @@ preferences_edit(){
 ############################################################################
 select_language(){
     local ui_user_answered
-    # TODO: say somewhere in proofreading some things about the next message:
-    #if ! el_flag check "welcome-proofread-important" ; then
-        #$guitool --info --text="$( eval_gettext "Important: The original message texts from the applications have not been written by native English speakers. They do not have a perfect grammar and even worse: these developers do not even sleep! If you have good English skills <b>please improve the English</b> of the messages <b>before</b> translating them into other languages. These sentences are the ones from which all the other languages will be translated. They need to be accurate, short, and understandable." )"
-        #el_flag add "welcome-proofread-important"
-    #fi
-
-
     ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select language" )" --text="$translated_message" || echo cancel )"
 
     ui_answer_check
@@ -375,6 +368,22 @@ translate_elive(){
 
             # do not translate this one
             return 0
+        fi
+    fi
+
+    # recent changes in last 3 days:
+    recent_changes_diffed="$( svn diff -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" )"
+    recent_changes_authors="$( svn log -v -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" | colors-remove | grep -E "^r[[:digit:]]+ " | awk '{print $3}' | sort -u | grep "[[:alnum:]]" | tr '\n' ' ' )"
+
+    # if somebody also edited the same translation in the last 3 days, tell the translator about it
+    if [[ -n "$recent_changes_diffed" ]] ; then
+        # only me? ignore...
+        if [[ "$recent_changes_authors" != "Thanatermesis" ]] ; then
+            $guitool --warning --text="$( eval_gettext "The file that you want to translate, has been modified in the last 3 days by other collaborators. You should not worry about this message and is only a notification to know about that other translator worked recently on the same file in order to avoid possible conflicts between versions translated. These translators was:" ) $recent_changes_authors"
+
+            if ! $guitool --question --text="$( eval_gettext "Do you want to continue editing this translation? Otherwise you can select another element to translate in the list" )" ; then
+                return 0
+            fi
         fi
     fi
 
