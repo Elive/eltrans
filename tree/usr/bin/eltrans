@@ -1139,7 +1139,15 @@ main(){
 
     # check version
     #if el_package_update_last_version eltrans ; then
-    el_package_upgrade_fast 180 normal "eltrans"
+    if el_package_upgrade_fast 180 normal "eltrans" ; then
+        # remove locks
+        rm -f "${logs_err}" "$tempfile"* 2>/dev/null || true
+        rm -f "$lockfile"
+        # run it again
+        "$0" "$@"
+        #exit from here
+        exit
+    fi
 
     # check internet
     if ! el_verify_internet ; then
