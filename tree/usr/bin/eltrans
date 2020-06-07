@@ -194,7 +194,7 @@ dependencies_install(){
 
 ############################################################################
 instructions_show(){
-    help_main="$( eval_gettext "HOW TO USE IT
+    help_main="$( eval_gettext "How to use Eltrans
 ==============
 - Every line includes a message, click in them and it will appear in 'Source language', the 'Translation' box will be your translated equivalent to that sentence
 - Sometimes the sentences includes strange codes like '%s', its important to NOT alter these elements since its part of the source code of the application, doing it will make the application work incorrectly
@@ -232,9 +232,8 @@ Proofreading option requires to verify and optimize each sentence to be the most
 - Some tips:
   - words wrongly transalted, like 'kernel' sometimes is wrongly translated, using Kernel or KERNEL makes it correctly translate
   - using 'computer' or 'machine' has a different tranlation, use the sysonyms that best translates correctly
-If you are doing corrections this means that these messages are mostly automatically generated, they can include the correct words but maybe not correctly spelled, not in human language or not understandable, simply improve them and you can click in the cloud icon when you have it done (Alt + U)
-
-If the original message is just correct, you can recyclate it fastly doing 'Ctrl + a', 'Ctrl + c', 'Tab', 'Ctrl + v'
+If you are doing corrections this means that these messages are mostly automatically generated, they can include the correct words but maybe not correctly spelled, not in human language or not understandable, simply improve them and press Ctrl + Enter
+  - If the original message is just correct, you can recyclate it fastly pressing 'Ctrl + b'
 
 Moving Faster:
 ==============
@@ -293,7 +292,7 @@ select_language(){
     if [[ "$language_user" = "en" ]] ; then
         # only a few allowed users can do proofreading at the moment
         if ! echo "$pref_user_cached_v" | grep -qsiE "(Thanatermesis)" ; then
-            $guitool --error --text="$( eval_gettext "Sorry! At the moment only a few people is allowed to correct the original messages in English. We do this to simply ensure the best quality of the messages for the Elive applications. You  can found more info about this topic in our Forums." )"
+            $guitool --error --text="$( eval_gettext "Sorry! At the moment only a few people is allowed to correct the original messages in English. We do this to simply ensure the best quality of the messages for the Elive applications. You can found more info about this topic in our Forums." )"
             $FUNCNAME
             return 0
         fi
@@ -306,7 +305,7 @@ select_language(){
 
     if [[ "$language_user" = "en" ]] ; then
         #$guitool --info --text="$( eval_gettext "Thank you for collaborating in the proofreading of the messages. In your systray you can find a grammar checker tool. If you think that the spelling of the original messages is incorrect or not giving the right information to the user, feel free to improve them. If you do not understand what a message means, ask the developers." )"
-        $guitool --info --text="$( eval_gettext "IMPORTANT: The quality of the automatic pre-translations depends heavily on the grammatical and syntactical accuracy and correctness of the English text. For this, we use a special reverse-engineering trick explained in the forum. Using the Google Translator website in the inverse way, you need to examine the automated translation to a common language like Spanish or French, and modify it until the automated translation is correct. When everything looks good, leave it like this. That way the pre-translations for Elive can be generated more accurately. If not, change a word or rewrite the sentence. This will save a lot of time to all the translators and will make the messages clearer and more understandable." )"
+        $guitool --info --text="$( eval_gettext "IMPORTANT: The quality of the automatic pre-translations depends heavily on the grammatical and syntactical accuracy and correctness of the English text. For this, we use a special reverse-engineering trick explained in the forum. Using the Google Translator website in the inverse way, you need to examine the automated translation to a common language like Spanish or French, and modify it until the automated translation is correct. When everything looks good, copy back the english message to use it, if not, change a word or rewrite the sentence. This will save a lot of time to all the translators and will make the messages clearer and more understandable." )"
     fi
 
 }
@@ -368,22 +367,22 @@ translate_elive(){
     if [[ "$count_percent_translate_v" -lt "85" ]] ; then
         if ! [[ "${language_user}" = "en" ]] ; then
             #$guitool --warning --text="$( eval_gettext "In this translation less than 85% of the original messages have been proofread. If you have good English skills, please proofread them. We suggest to translate another application for now. Otherwise you risk doing the translation twice, since the proofreading may result in different message texts." )"
-            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 85% of its original messages proofreaded, we need to wait for a better proofreading first, otherwise our translator work will be lost later. In the meantime, you can select another application to translate." )"
+            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 85% of its original messages verified, we need to wait for a better proofreading first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
 
-            if $guitool --question --text="$( eval_gettext "If you have good english skills, and you also know natively another main language like french or spanish. You can help proofreading the english of Elive using our mystical reverse-engineering method. Do you want to know more about it?" )" ; then
-                web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-proofread-the-english-original-messages/1055"
+            if $guitool --question --text="$( eval_gettext "If you have good English skills, and you also know natively another common language like French or Spanish. You can help improving the English sentences using our mystical reverse-engineering method. Do you want to know more about it?" )" ; then
+                web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-proofread-the-original-messages-of-elive/1055"
             fi
-        fi
 
-        # do not translate this one
-        return 0
+            # do not translate this one
+            return 0
+        fi
     fi
 
 
     count_messages_completed "$_tr_app_d/${language_user}.po"
 
     if [[ "$count_msg_fuzzy_v" -ge "10" ]] ; then
-        notify-send -t 80000 "$( eval_gettext "Eltrans suggestion" )" "$( eval_gettext "Eltrans: If there is a message needing an update ('Needs Work' type), but is correctly translated, you can press the cloud icon." )"" ""$( eval_gettext "(or the Alt + U hotkey)" )"
+        notify-send -t 80000 "$( eval_gettext "Eltrans suggestion" )" "$( eval_gettext "Eltrans: If there's messages needing an update ('Needs Work' type), but they are correctly translated, you can press Ctrl + Enter to mark it as valid." )"
     fi
 
     #
@@ -493,7 +492,7 @@ commit_changes_elive(){
         #$guitool --info --text="$message_install_required"
     #fi
 
-    if ! $guitool --question --text="$( eval_gettext "Sending your translation to Elive is automated and every user will be benefited of it.\n\nIf you want to contribute, create an account on http://www.elivecd.org/collaborate.\n\nYou should not wait too long to send your translation. Someone else may work on the same messages, and the resulting versions may not be compatible. When you have finished translating some messages, send them right away. Only translated messages willl be included in the application.\n\nPlease only send grammatically correct messages. If necessary, change the English message texts.\n\nSend translations now?" )" ; then
+    if ! $guitool --question --text="$( eval_gettext "Sending your translation to Elive is automated and every user will be benefited of it.\n\nIf you don't have an account yet, check our forums for more information\n\nYou should not wait too long to send your translation. Someone else may work on the same messages, and the resulting versions may not be compatible. When you have finished translating some messages, send them right away. Only translated messages willl be included in the application.\n\nPlease only send grammatically correct messages. If necessary, change the English message texts.\n\nSend translations now?" )" ; then
         return 0
     fi
 
@@ -574,7 +573,9 @@ EOF
     #fi
 
     # last message
-    $guitool --info --text="$( eval_gettext "Messages have been sent. You can see them at http://dev.elivecd.org/timeline" )"
+    if $guitool --question --text="$( eval_gettext "Translations sent. You can review it and others at:" ) http://dev.elivecd.org/timeline $( eval_gettext "View the timelines in the web browser now?" )" ; then
+        web-launcher "https://dev.elivecd.org/timeline" &
+    fi
 }
 ############################################################################
 add_translations_dir_e17(){
@@ -912,6 +913,7 @@ count_messages_completed(){
     count_percent_fuzzy_v="$( echo -e "( $count_msg_fuzzy_v / $count_msg_all_v ) * 100" | bc -l )"
     #el_debug "( $count_msg_fuzzy_v / $count_msg_all_v ) * 100"
     count_percent_fuzzy_v="${count_percent_fuzzy_v%%.*}"
+    [[ -z "$count_percent_fuzzy_v" ]] && count_percent_fuzzy_v=0
 
     #if [[ "$count_msg_all_v" -gt "$count_msgstr_all_v" ]] ; then
         #is_count_less_than=1
@@ -927,8 +929,7 @@ count_messages_completed(){
         #count_percent_v=0
     #fi
 
-
-    el_debug "$_tr_po | msgid $count_msg_all_v | msgstr $count_msgstr_all_v | fuzzy $count_msg_fuzzy_v | to-translate $count_percent_translate_v | fuzzy $count_percent_fuzzy_v"
+    #el_debug "$_tr_po | msgid $count_msg_all_v | msgstr $count_msgstr_all_v | fuzzy $count_msg_fuzzy_v | to-translate $count_percent_translate_v % | fuzzy $count_percent_fuzzy_v %"
 
 }
 ############################################################################
@@ -993,15 +994,19 @@ translate_new(){
 
 
                 if [[ -z "$item_lang_v" ]]; then
-                    tr_completed_v="NEW: 0 % completed"
+                    tr_completed_v="NEW language: 0 % completed"
 
                 else
                     # debug purposes:
                     #if [[ "$item_v" = *smb-browser ]] ; then
                         #set -x
                     #fi
-                    count_messages_completed "${item_v}/en.po"
-                    count_percent_proofread_v="$count_percent_translate_v"
+                    if [[ "$item_lang_v" = "en" ]]; then
+                        count_percent_proofread_v="100"
+                    else
+                        count_messages_completed "${item_v}/en.po"
+                        count_percent_proofread_v="$count_percent_translate_v"
+                    fi
                     #set +x
 
                     count_messages_completed "${item_v}/${item_lang_v}.po"
@@ -1024,22 +1029,26 @@ translate_new(){
                     else
                         if [[ "${count_percent_translate_v}" = "100" ]] ; then
                             if [[ "${item_lang_v}" = "en" ]] ; then
-                                tr_completed_v="Completed ${count_percent_translate_v}% - No proofreading required"
+                                tr_completed_v="Completed ${count_percent_translate_v} %"
                                 item_order_v=6
                             else
                                 if [[ "${count_percent_fuzzy_v}" = "100" ]] ; then
-                                    tr_completed_v="Completed"
+                                    tr_completed_v="Completed ${count_percent_translate_v} %"
                                     item_order_v=6
                                 else
-                                    tr_completed_v="${count_percent_translate_v}% translated (${item_lang_v}), ${count_percent_fuzzy_v}% Verified"
+                                    tr_completed_v="${count_percent_translate_v}% translated (${item_lang_v}), ${count_percent_fuzzy_v}% Reviewed"
                                     item_order_v=3
                                 fi
                             fi
                         else
                             if [[ "${item_lang_v}" = "en" ]] ; then
-                                tr_completed_v="${count_percent_translate_v}% Proofreaded, ${count_percent_fuzzy_v}% Verified"
+                                if [[ "${count_percent_fuzzy_v}" = "100" ]] ; then
+                                    tr_completed_v="${count_percent_translate_v}% Proofreaded"
+                                else
+                                    tr_completed_v="${count_percent_translate_v}% Proofreaded, ${count_percent_fuzzy_v}% Reviewed"
+                                fi
                             else
-                                tr_completed_v="${count_percent_translate_v}% translated (${item_lang_v}), ${count_percent_fuzzy_v}% Verified"
+                                tr_completed_v="${count_percent_translate_v}% translated (${item_lang_v}), ${count_percent_fuzzy_v}% Reviewed"
                             fi
                             item_order_v=2
                         fi
