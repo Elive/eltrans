@@ -391,7 +391,7 @@ translate_elive(){
     count_messages_completed "$_tr_app_d/${language_user}.po"
 
     if [[ "$count_msg_fuzzy_v" -ge "10" ]] ; then
-        notify-send -t 80000 "$( eval_gettext "Eltrans suggestion" )" "$( eval_gettext "Eltrans: If there's messages needing an update ('Needs Work' type), but they are correctly translated, you can press Ctrl + Enter to mark it as valid." )"
+        el_notify normal gtranslator "$( eval_gettext "Eltrans suggestion" )" "$( eval_gettext "Eltrans: If there's messages needing an update ('Needs Work' type), but they are correctly translated, you can press Ctrl + Enter to mark it as valid." )"
     fi
 
     #
