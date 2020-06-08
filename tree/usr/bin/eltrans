@@ -455,7 +455,7 @@ translation_elive_install(){
     svndiff="$( svn diff | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" || true )"
 
     if [[ -n "$svndiff" ]] ; then
-        if $guitool --question --text="$( eval_gettext "Do you want to use your translation in your system now? It is suggested to test yourself the made translations before to send them to Elive in order to verify that everything looks correct and consistent." )" ; then
+        if $guitool --question --text="$( eval_gettext "Install and use your translation in your system now? It is suggested to test yourself the made translations before to send them to Elive in order to verify that everything looks correct and consistent." )" ; then
 
             if ! [[ -d "/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES" ]] ; then
                 gksu "mkdir -p /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES"
@@ -466,7 +466,7 @@ translation_elive_install(){
 
             if gksu "msgfmt ${_tr_po} -o /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_app}.mo" ; then
                 is_translation_installed=1
-                $guitool --info --text="$( eval_gettext "Your translation is installed in your system, you can use it now" )"
+                $guitool --info --text="$( eval_gettext "Translation installed in your system. Make sure to close the translated application and run it again to verify the modified messages." )"
             else
                 $guitool --error
             fi
@@ -504,7 +504,7 @@ commit_changes_elive(){
         #$guitool --info --text="$message_install_required"
     #fi
 
-    if ! $guitool --question --text="$( eval_gettext "Sending your translation to Elive is automated and every user will be benefited of it.\n\nIf you don't have an account yet, check our forums for more information\n\nYou should not wait too long to send your translation. Someone else may work on the same messages, and the resulting versions may not be compatible. When you have finished translating some messages, send them right away. Only translated messages willl be included in the application.\n\nPlease only send grammatically correct messages. If necessary, change the English message texts.\n\nSend translations now?" )" ; then
+    if ! $guitool --question --title="Send translations" --text="$( eval_gettext "Sending your translation to Elive is automated and every user will be benefited of it.\n\nIf you don't have an account yet, check our forums for more information\n\nYou should not wait too long to send your translation. Someone else may work on the same messages, and the resulting versions may not be compatible. When you have finished translating some messages, send them right away. Only translated messages willl be included in the application.\n\nPlease only send grammatically correct messages. If necessary, change the English message texts.\n\nSend translations now?" )" ; then
         return 0
     fi
 
@@ -585,7 +585,7 @@ EOF
     #fi
 
     # last message
-    if $guitool --question --text="$( eval_gettext "Translations sent. You can review it and others at:" ) http://dev.elivecd.org/timeline $( eval_gettext "View the timelines in the web browser now?" )" ; then
+    if $guitool --question --text="$( eval_gettext "Translations sent. You can review it and other ones at:" ) http://dev.elivecd.org/timeline $( eval_gettext "View the timelines in the web browser now?" )" ; then
         web-launcher "https://dev.elivecd.org/timeline" &
     fi
 }
