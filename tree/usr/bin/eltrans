@@ -82,6 +82,9 @@ exit_error(){
         killall languagetool 2>/dev/null || true
         killall languagetool-tray 2>/dev/null || true
     fi
+
+    kill "$pid_guitool_counting" 1>/dev/null 2>&1 || true
+
     exit
 }
 ############################################################################
@@ -101,6 +104,9 @@ exit_ok(){
     if [[ -x "$(which languagetool)" ]] ; then
         killall languagetool-tray 2>/dev/null
     fi
+
+    kill "$pid_guitool_counting" 1>/dev/null 2>&1 || true
+
     exit 0
 }
 
@@ -194,7 +200,7 @@ dependencies_install(){
 
 ############################################################################
 instructions_show(){
-    if ((is_instructions_show)) ; then
+    if el_flag check instructions_show ; then
         return
     fi
 
@@ -248,7 +254,7 @@ For moving faster to the next message, press TAB, the down-key, and again TAB
 
     echo "$help_main" | $guitool --text-info --title="How to use eltrans" --width=540 --height=500 1>/dev/null &
 
-    is_instructions_show=1
+    el_flag add instructions_show
 
 }
 ############################################################################
@@ -302,10 +308,10 @@ select_language(){
 
     dependencies_install "$language_user"
 
-    if [[ "$language_user" = "en" ]] && ! ((is_proofreading_warning_show)) ; then
+    if [[ "$language_user" = "en" ]] && ! el_flag check proofreading_warning_show ; then
         #$guitool --info --text="$( eval_gettext "Thank you for collaborating in the proofreading of the messages. In your systray you can find a grammar checker tool. If you think that the spelling of the original messages is incorrect or not giving the right information to the user, feel free to improve them. If you do not understand what a message means, ask the developers." )"
         $guitool --info --text="$( eval_gettext "IMPORTANT: The quality of the automatic pre-translations depends heavily on the grammatical and syntactical accuracy and correctness of the English text. For this, we use a special reverse-engineering trick explained in the forum. Using the Google Translator website in the inverse way, you need to examine the automated translation to a common language like Spanish or French, and modify it until the automated translation is correct. When everything looks good, copy back the english message to use it, if not, change a word or rewrite the sentence. This will save a lot of time to all the translators and will make the messages clearer and more understandable." )"
-        is_proofreading_warning_show=1
+        el_flag add proofreading_warning_show
     fi
 
 }
@@ -379,8 +385,8 @@ translate_elive(){
     fi
 
     # recent changes in last 3 days:
-    recent_changes_diffed="$( svn diff -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" | grep "^+msgstr " )"
-    recent_changes_authors="$( svn log -v -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" | colors-remove | grep -E "^r[[:digit:]]+ " | awk '{print $3}' | sort -u | grep "[[:alnum:]]" | tr '\n' ' ' )"
+    recent_changes_diffed="$( svn diff -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" 2>/dev/null | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" | grep "^+msgstr " )"
+    recent_changes_authors="$( svn log -v -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" 2>/dev/null | colors-remove | grep -E "^r[[:digit:]]+ " | awk '{print $3}' | sort -u | grep "[[:alnum:]]" | tr '\n' ' ' )"
     read -r recent_changes_authors <<< "$recent_changes_authors"
 
     # if somebody also edited the same translation in the last 3 days, tell the translator about it
@@ -555,8 +561,13 @@ commit_changes_elive(){
 
     for blklisted in "$( curl http://main.elivecd.org/tmp/blklisted-translators 2>/dev/null )"
     do
+        [[ -z "$blklisted" ]] && continue
+        el_debug "blklisted translator: $blklisted"
         [[ "$pref_user_cached_v" = "$blklisted" ]] && is_blklist=1
     done
+
+    local message_error_sending_translations
+    message_error_sending_translations="$( printf "$( eval_gettext "Error sending your translation, if you are using a Wrong Username or Password for the send please remove the file '%s', if this is not the issue, you can use the 'Clean' option of Eltrans, but if you have important work saved, first do a backup of your directory '%s' and use meld with it and your backup after you have made Eltrans working again" )" "$preferences_f" "$translating_elive_d" )"
 
     if ((is_blklist)) ; then
         $term -e bash -c "sleep 1"
@@ -571,8 +582,9 @@ if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pr
     $guitool --info --text="$( eval_gettext "Translation sent sucessfully. Thank you for your collaboration. It will be examined soon and included directly in Elive's next version. You can see your translation on http://dev.elivecd.org/timeline, where you can also look at other translations made by someone else. You can also see there who made the translation, look at the differences or recover an older translation if necessary." )"
 
 else
-    $guitool --error --text="Error sending your translation, if you are using a Wrong Username or Password for the send please remove the file '$preferences_f', otherwise the better solution is to remove your full translations project dir '$translating_elive_d' and run the 'clean' or 'purge' option of eltrans. You can backup before your translated file and compare it with the 'meld' tool "
+    $guitool --error --text="$message_error_sending_translations"
 fi
+
 EOF
         chmod +x "${temp_script}"
         $term -e "${temp_script}"
@@ -592,7 +604,7 @@ EOF
     #fi
 
     # last message
-    if $guitool --question --text="$( eval_gettext "Translations sent. You can review it and other ones at:" ) http://dev.elivecd.org/timeline $( eval_gettext "View the timelines in the web browser now?" )" ; then
+    if $guitool --question --text="$( eval_gettext "You can review it and other ones at:" ) http://dev.elivecd.org/timeline $( eval_gettext "View the timelines in the web browser now?" )" ; then
         web-launcher "https://dev.elivecd.org/timeline" &
     fi
 }
@@ -850,18 +862,20 @@ clean_elive_dir(){
     el_debug
      local ui_user_answered
 
-    ui_user_answered="$( $guitool --list --width=400 --height=400 --text="$( eval_gettext "Select this option to remove your translations directory or to revert to a previous commit (Important: If you erroneously have sent a wrong translation, you have to select this option)" )" --column="$( eval_gettext "Option" )" --column="$( eval_gettext "Description" )" "Purge" "$( eval_gettext "This option removes the entire directory with your translations." )" "Revert" "$( eval_gettext "This option lets you undo a wrong translation, which you sent by mistake." )" || echo cancel )"
+     ui_user_answered="$( $guitool --list --width=520 --height=300 --text="$( eval_gettext "Select this option to remove your translations directory or to revert to a previous commit (Important: If you erroneously have sent a wrong translation, you have to select this option)" )" --column="$( eval_gettext "Option" )" --column="$( eval_gettext "Description" )" "Purge" "$( eval_gettext "This option removes the entire directory with your translations." )" "Account" "$( eval_gettext "Resets your username and password configurations" )" "Revert" "$( eval_gettext "This option lets you undo a wrong translation, which you sent by mistake." )" || echo cancel )"
     ui_answer_check
 
     case "$ui_user_answered" in
-        "Purge")
+        "Account")
             rm -rf "$preferences_f"
+            ;;
 
+        "Purge")
 
             local translated_message
             translated_message="$( printf "$( eval_gettext "You are going to remove your translations directory (not the Enlightenment 17 translations). This will remove all the translations that you have not sent or backed up. If you like, do a backup of your '%s' directory first, and after that, continue." )" "$translating_elive_d" )"
 
-            if $guitool --question --text="$translating_elive_d" ; then
+            if $guitool --question --text="Going to delete the directory '$translating_elive_d'. Continue?" ; then
                 rm -rf "$translating_elive_d"
             fi
 
@@ -896,22 +910,52 @@ clean_elive_dir(){
 count_messages_completed(){
     #el_debug
 
-    local is_count_less_than count_msg_all_v count_msg_null_v count_msgstr_all_v count_msgstr_null_v
+    #local count_msg_all_v count_msgstr_all_v
     local _tr_po _item
     _tr_po="$1"
     #_item="$2"
 
+    # is translation file empty or not existing?
+    if ! [[ -s "$_tr_po" ]] ; then
+        if [[ "$_tr_po" = *"/en.po" ]] ; then
+            # copy from template
+            cp -f "$( dirname "$_tr_po" )/default.pot" "$_tr_po"
+            el_debug "adding default english translation from 'default.pot':"
+            svn add "$_tr_po"
+        else
+            el_error "$_tr_po doesn't exist"
+            # check if language really exist:
+            if cat /etc/locale.gen | grep -i UTF-8 | sed -e 's|^# ||g' -e 's| .*$||g' -e 's|\..*$||g' | sort -u | grep -qs "^${language_user}$" || cat /etc/locale.gen | grep -i UTF-8 | sed -e 's|^# ||g' -e 's| .*$||g' -e 's|\..*$||g' -e 's|_.*$||g' | sort -u | grep -qs "^${language_user}$" ; then
+
+                # warng the user that a new translation is going to be created
+                $guitool --warning --text="$( eval_gettext "This is a new language which didn't existed previously for this translation, so we are going to create a new template for this type of language." )"
+
+                if $guitool --question --text="$( eval_gettext "Please confirm first. Is the language identifier that you inserted the correct for your translations?" ) '$language_user'" ; then
+                    cp -f "$( dirname "$_tr_po" )/default.pot" "$_tr_po"
+                    el_debug "adding default english translation from 'default.pot':"
+                    svn add "$_tr_po"
+                else
+                    $guitool --error --text="$( eval_gettext "Please run again Eltrans selecting a different language to use." )"
+                    exit 1
+                fi
+
+            else
+                el_error "the '$language_user' language inserted by user doesn't seems to be a valid language identifier found in /etc/locale.gen"
+                $guitool --error --text="$( eval_gettext "The selected language identifier doesn't seems to exist, if you think that this is an error in Eltrans tell us about it in the forums. Please run again Eltrans selecting a different language to translate." )"
+                exit 1
+            fi
+        fi
+    fi
+
     el_check_variables "_tr_po"
 
-    unset count_percent_v count_percent_translate_v count_percent_fuzzy_v
+    unset count_percent_v count_percent_translate_v count_percent_fuzzy_v count_msg_all_v count_msgstr_all_v
 
     # how much messages we have?
     count_msg_all_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgid \"\")/ ){next}}; { if ($0 ~ /^msgid "/) {count++} }; END {print count}' "$_tr_po" )"
     [[ -z "$count_msg_all_v" ]] && count_msg_all_v=0
 
     # how much fuzzy's we have?
-    #count_msg_fuzzy_v="$( awk -v FS="\n" -v RS="" '{ if ($1 ~ /^#.*fuzzy/) if ($2 ~ "^msgid ") print $1 }' "$_tr_po" | wc -l )"
-    #count_msgstr_null_v="$( awk '{if(prev=="msgstr \"\"" && $0=="" ){count++};prev=$0}END{print count}' "$_tr_po" )"
     count_msg_fuzzy_v="$( awk 'NR<=12 { next }; { if (prev ~ /^#.*fuzzy/ && $0 ~ /^msgid / ) {count++}; prev=$0 } END{print count}' "$_tr_po" )"
     #count_msg_fuzzy_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgid \"\")/ ){next}}; { if ($0 ~ /^#.*fuzzy/) {count++} }; END {print count}' "$_tr_po" )"
     [[ -z "$count_msg_fuzzy_v" ]] && count_msg_fuzzy_v=0
@@ -934,21 +978,11 @@ count_messages_completed(){
     count_percent_fuzzy_v="${count_percent_fuzzy_v%%.*}"
     [[ -z "$count_percent_fuzzy_v" ]] && count_percent_fuzzy_v=0
 
-    #if [[ "$count_msg_all_v" -gt "$count_msgstr_all_v" ]] ; then
-        #is_count_less_than=1
-    #fi
-
-    #count_percent_v="${count_percent_v%%.*}"
-
-    #if [[ "$count_percent_v" = "100" ]] && ((is_count_less_than)) ; then
-        #count_percent_v="99"
-    #fi
-
     #if [[ -z "$count_percent_v" ]] ; then
         #count_percent_v=0
     #fi
 
-    #el_debug "$_tr_po | msgid $count_msg_all_v | msgstr $count_msgstr_all_v | fuzzy $count_msg_fuzzy_v | to-translate $count_percent_translate_v % | fuzzy $count_percent_fuzzy_v %"
+    el_debug "COUNTED: $_tr_po | msgid $count_msg_all_v | msgstr $count_msgstr_all_v | fuzzy $count_msg_fuzzy_v | to-translate $count_percent_translate_v % | fuzzy $count_percent_fuzzy_v %"
 
 }
 ############################################################################
@@ -957,7 +991,7 @@ translate_new(){
 
     local ui_user_answered
 
-    local item_order_v item_order_percent_v item_lang_v tr_name_v tr_version_v tr_package_name_v tr_description_v is_showed_message_upgrade pid
+    local item_order_v item_order_percent_v item_lang_v tr_name_v tr_version_v tr_package_name_v tr_description_v is_showed_message_upgrade
     el_check_variables "tempfile"
     el_check_dirs "$translating_d"
 
@@ -972,12 +1006,12 @@ translate_new(){
 
         { echo 10 ; sleep 40 ; } \
             | $guitool --progress --text="$( eval_gettext "Counting translated messages..." )" --pulsate &
-        pid=$!
+        pid_guitool_counting=$!
 
         for item_v in ${translating_d}/elive/*
         do
             if [[ -s "${item_v}/settings" ]]; then
-                unset count_percent_fuzzy_v count_percent_translate_v tr_name_v tr_version_v tr_description_v tr_package_name_v item_order_v tr_completed_v
+                unset count_percent_fuzzy_v count_percent_translate_v tr_name_v tr_version_v tr_description_v tr_package_name_v item_order_v tr_completed_v tr_sentences_v
 
                 tr_name_v="$( basename "$item_v" )"
 
@@ -1029,6 +1063,10 @@ translate_new(){
                     #set +x
 
                     count_messages_completed "${item_v}/${item_lang_v}.po"
+                    tr_sentences_v="$count_msg_all_v"
+                    if [[ -z "$tr_sentences_v" ]] ; then
+                        tr_sentences_v="?"
+                    fi
 
                     # reverse value to make it understandable
                     #count_percent_translate_v="$(( 100 - $count_percent_translate_v ))"
@@ -1073,11 +1111,6 @@ translate_new(){
                         fi
                     fi
 
-                    # If is fuzzy
-                    #if [[ "$count_msg_fuzzy_v" -ge "1" ]] && [[ "$count_percent_v" = "100" ]] ; then
-                        #tr_completed_v="Needs ${count_msg_fuzzy_v} grammar checks (${item_lang_v}), ${count_msg_fuzzy_v}% Proofread"
-                        #item_order_v=4
-                    #fi
                 fi
 
 
@@ -1093,21 +1126,23 @@ translate_new(){
                     else
                         item_order_percent2_v="$count_percent_fuzzy_v"
                     fi
-                    echo -e "${tr_name_v}\n${tr_completed_v}\n${tr_description_v}" >> "${tempfile}_order_${item_order_v}_${item_order_percent_v}_${item_order_percent2_v}"
+                    # append to list
+                    echo -e "${tr_name_v}\n${tr_sentences_v}\n${tr_completed_v}\n${tr_description_v}" >> "${tempfile}_order_${item_order_v}_${item_order_percent_v}_${item_order_percent2_v}"
                 fi
 
             fi
         done
 
         echo -e "Clean" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Delete all temporal states" )" >> "${tempfile}_order_8_"
+        echo -e "-" >> "${tempfile}_order_8_"
+        echo -e "$( eval_gettext "Cleanups and fixes in Eltrans" )" >> "${tempfile}_order_8_"
         echo -e "$( eval_gettext "Remove your translations directory to avoid possible conflicts." )" >> "${tempfile}_order_8_"
 
 
-        kill "$pid"
+        kill "$pid_guitool_counting" 1>/dev/null 2>&1 || true
 
 
-        ui_user_answered="$( cat ${tempfile}_order_* | $guitool --list --width=840 --height=540 --title="$( eval_gettext "Select an element." )" --text="$( eval_gettext "Select an element that you want to translate or to update in an already existing translation.\nThe first elements in the list are the most needed ones, they are sorted like this on purpose." )" --column="$( eval_gettext "Element" )" --column="$( eval_gettext "Complete" )" --column="$( eval_gettext "Description" )" || echo cancel )"
+        ui_user_answered="$( cat ${tempfile}_order_* | $guitool --list --width=840 --height=540 --title="$( eval_gettext "Select an element." )" --text="$( eval_gettext "Select an element that you want to translate or to update in an already existing translation.\nThe first elements in the list are the most needed ones, they are sorted like this on purpose." )" --column="$( eval_gettext "Element" )" --column="$( eval_gettext "Phrases" )" --column="$( eval_gettext "Complete" )" --column="$( eval_gettext "Description" )" || echo cancel )"
         ui_answer_check
 
         rm -f "$tempfile" ${tempfile}_order_* || true
@@ -1185,7 +1220,7 @@ main(){
         #/etc/alternatives/x-www-browser "https://www.elivecd.org/collaborate" &
         #/etc/alternatives/x-www-browser "https://www.elivecd.org/contact" &
         web-launcher "https://www.elivecd.org/contact" &
-        sleep 24
+        sleep 15
 
         $guitool --info --text="$( eval_gettext "Enter your username and password after to have activated your account." )"
         preferences_edit
