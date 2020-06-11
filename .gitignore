@@ -1,10 +1,25 @@
-# Can ignore specific files
+# macOS
 *.DS_Store
+._*
+.AppleDouble
+.DS_Store
+.LSOverride
+Icon
+# Windoze
+[Dd]esktop.ini
+ehthumbs.db
+Thumbs.db
 # Use wildcards as well
 *~
 *.sw*
 *.out
 *.lock
+*.bak
+*.tmp
+*.temp
 # debian build dirs
 debian
 mkdeb_editing
+# temporary directories
+tmp/
+temp/
