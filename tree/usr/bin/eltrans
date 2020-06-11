@@ -59,7 +59,11 @@ ui_answer_check(){
     el_debug
 
     if [[ "$ui_user_answered" = "cancel" ]] ; then
-        $guitool --info --text="$( eval_gettext "Thanks for collaborating in the Elive translations." )"
+        if [[ -n "$EROOT" ]] ; then
+            el_notify normal znes "Eltrans" "$( eval_gettext "Thanks for collaborating with the Elive translations." )"
+        else
+            el_notify normal "/usr/share/git-watcher/images/ttc.gif" "Eltrans" "$( eval_gettext "Thanks for collaborating with the Elive translations." )"
+        fi
         exit 0
     fi
 
@@ -590,10 +594,10 @@ commit_changes_elive(){
 
 if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans commit:  |${_tr_app}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}"  ; then
     sleep 1
-    $guitool --info --text="$( eval_gettext "Translation sent sucessfully. Thank you for your collaboration. It will be examined soon and included directly in Elive's next version. You can see your translation on http://dev.elivecd.org/timeline, where you can also look at other translations made by someone else. You can also see there who made the translation, look at the differences or recover an older translation if necessary." )"
+    $guitool --info --text="$( eval_gettext "Translation sent sucessfully. Thank you for your collaboration. It will be examined soon and included directly in Elive's next version. You can see your translation on http://dev.elivecd.org/timeline, where you can also look at other translations made by someone else. You can also see there who made the translation, look at the differences or recover an older translation if necessary." )" 1>/dev/null 2>&1
 
 else
-    $guitool --error --text="$message_error_sending_translations"
+    $guitool --error --text="$message_error_sending_translations" 1>/dev/null 2>&1
 fi
 
 EOF
@@ -717,15 +721,15 @@ EOF
         #fi
 
         # note: logs_err are not errors really but mostly messages to parse
-        if grep -q "^G " "${logs_err}" ; then
+        if grep -qsE "^\s+G" "${logs_err}" ; then
 
-            conflicted_file_f="$( grep "^G " "${logs_err}" | awk '{print $2}' | tr '\n' ' ')"
+            conflicted_file_f="$( grep -E "^\s+G" "${logs_err}" | awk '{print $2}' | tr '\n' ' ')"
 
 
             local translated_message
-            translated_message="$( printf "$( eval_gettext "IMPORTANT: There is an update of the file '%s' that conflicts with your version. It will be removed, so eltrans can work correctly. If you have an old translation that you do not want to lose, you should make a backup of your old file from %s. You should close eltrans, install the 'meld' package and use it to compare and merge the changes with this file and the actual one in %s. Afterwards, run eltrans again with your updated file and send the translation if needed. If you do not care about this old file, ignore this message and continue." )" "${conflicted_file_f}" "/tmp/${USER}-translations-eltrans" "${translating_d}" )"
+            translated_message="$( printf "$( eval_gettext "IMPORTANT: There was an update of the file '%s' that conflicted with your version. It was removed, so that Eltrans can work correctly. If you had on it an old translation that you do not want to lose, you can use with caution the tool '%s', to compare and merge the contents, its important to respect the source code of these files and especially to keep the same newlines on them. If you want to do that, close now eltrans and run this command, after, start eltrans again and send your translation. The command is:" )" "${conflicted_file_f}" "meld" )\n\nmeld /tmp/${USER}-translations-eltrans ${translating_d}"
 
-            $guitool --warning --text="$translated_message"
+            $guitool --warning --text="${translated_message}"
 
             unset conflicted_file_f
         fi
