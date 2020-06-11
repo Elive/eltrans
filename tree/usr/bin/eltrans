@@ -385,10 +385,10 @@ translate_elive(){
     # count english proofreading
     count_messages_completed "$_tr_app_d/en.po"
 
-    if [[ "$count_percent_translate_v" -lt "85" ]] ; then
+    if [[ "$count_percent_translate_v" -lt "80" ]] ; then
         if ! [[ "${language_user}" = "en" ]] ; then
-            #$guitool --warning --text="$( eval_gettext "In this translation less than 85% of the original messages have been proofread. If you have good English skills, please proofread them. We suggest to translate another application for now. Otherwise you risk doing the translation twice, since the proofreading may result in different message texts." )"
-            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 85% of its original messages verified, we need to wait for a better proofreading first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
+            #$guitool --warning --text="$( eval_gettext "In this translation less than 80% of the original messages have been proofread. If you have good English skills, please proofread them. We suggest to translate another application for now. Otherwise you risk doing the translation twice, since the proofreading may result in different message texts." )"
+            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 80% of its original messages verified, we need to wait for a better proofreading first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
 
             if $guitool --question --text="$( eval_gettext "If you have good English skills, and you also know natively another common language like French or Spanish. You can help improving the English sentences using our mystical reverse-engineering method. Do you want to know more about it?" )" ; then
                 web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-proofread-the-original-messages-of-elive/1055"
@@ -1095,8 +1095,8 @@ translate_new(){
                     fi
 
                     # Normal description set for different percentages
-                    if [[ "$count_percent_proofread_v" -lt 85 ]] ; then
-                        tr_completed_v="Needs more English proofreading"
+                    if [[ "$count_percent_proofread_v" -lt 80 ]] ; then
+                        tr_completed_v="Needs more English proofreading (${count_percent_proofread_v}% done)"
                         item_order_v=7
                     else
                         if [[ "${count_percent_translate_v}" = "100" ]] ; then
