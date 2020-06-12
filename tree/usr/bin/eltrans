@@ -706,8 +706,6 @@ echo
 
 echo "Updating..."
 LC_ALL=C timeout 120 svn update --non-interactive --username "${pref_user_cached_v}" --password "${pref_pass_cached_v}" --accept theirs-full 2>&1 | tee "${logs_err}"
-
-sleep 3
 EOF
         chmod +x "${temp_script}"
         $term -e "${temp_script}"
