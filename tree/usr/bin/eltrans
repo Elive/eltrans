@@ -1149,7 +1149,7 @@ translate_new(){
         echo -e "Clean" >> "${tempfile}_order_8_"
         echo -e "-" >> "${tempfile}_order_8_"
         echo -e "$( eval_gettext "Cleanups and fixes in Eltrans" )" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Remove your translations directory to avoid possible conflicts." )" >> "${tempfile}_order_8_"
+        echo -e "$( eval_gettext "Remove your translations dir to avoid conflicts." )" >> "${tempfile}_order_8_"
 
 
         kill "$pid_guitool_counting" 1>/dev/null 2>&1 || true
