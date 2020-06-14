@@ -317,6 +317,9 @@ select_language(){
             #$guitool --info --text="$( eval_gettext "Thank you for collaborating in the proofreading of the messages. In your systray you can find a grammar checker tool. If you think that the spelling of the original messages is incorrect or not giving the right information to the user, feel free to improve them. If you do not understand what a message means, ask the developers." )"
             $guitool --info --text="$( eval_gettext "IMPORTANT: The quality of the automatic pre-translations depends heavily on the grammatical and syntactical accuracy and correctness of the English text. For this, we use a special reverse-engineering trick explained in the forum. Using the Google Translator website in the inverse way, you need to examine the automated translation to a common language like Spanish or French, and modify it until the automated translation is correct. When everything looks good, copy back the english message to use it, if not, change a word or rewrite the sentence. This will save a lot of time to all the translators and will make the messages clearer and more understandable." )"
 
+            if ! $guitool --question --text="$( eval_gettext "Do you know already the procedure of the english proofreading method we use?" )" ; then
+                web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-improve-the-english-sentences-in-elive-proofreading/1055" &
+            fi
 
             el_flag add proofreading_warning_show
         fi
