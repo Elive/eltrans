@@ -939,26 +939,38 @@ count_messages_completed(){
             el_debug "adding default english translation from 'default.pot':"
             svn add "$_tr_po"
         else
-            el_error "$_tr_po doesn't exist"
-            # check if language really exist:
-            if cat /etc/locale.gen | grep -i UTF-8 | sed -e 's|^# ||g' -e 's| .*$||g' -e 's|\..*$||g' | sort -u | grep -qs "^${language_user}$" || cat /etc/locale.gen | grep -i UTF-8 | sed -e 's|^# ||g' -e 's| .*$||g' -e 's|\..*$||g' -e 's|_.*$||g' | sort -u | grep -qs "^${language_user}$" ; then
 
-                # warng the user that a new translation is going to be created
-                $guitool --warning --text="$( eval_gettext "This is a new language which didn't existed previously for this translation, so we are going to create a new template for this type of language." )"
+            if ((is_new_language_add_wanted)) ; then
+                cp -f "$( dirname "$_tr_po" )/default.pot" "$_tr_po"
+                el_debug "adding default english translation from 'default.pot':"
+                svn add "$_tr_po"
+            else
+                el_error "$_tr_po doesn't exist"
+                # check if language really exist:
+                if cat /etc/locale.gen | grep -i UTF-8 | sed -e 's|^# ||g' -e 's| .*$||g' -e 's|\..*$||g' | sort -u | grep -qs "^${language_user}$" || cat /etc/locale.gen | grep -i UTF-8 | sed -e 's|^# ||g' -e 's| .*$||g' -e 's|\..*$||g' -e 's|_.*$||g' | sort -u | grep -qs "^${language_user}$" ; then
 
-                if $guitool --question --text="$( eval_gettext "Please confirm first. Is the language identifier that you inserted the correct for your translations?" ) '$language_user'" ; then
-                    cp -f "$( dirname "$_tr_po" )/default.pot" "$_tr_po"
-                    el_debug "adding default english translation from 'default.pot':"
-                    svn add "$_tr_po"
+                    # warn the user that a new translation is going to be created
+                    if echo "$language_user" | grep "_" ; then
+                        $guitool --warning --text="$( eval_gettext "Warning: This is a new language translation which didn't existed previously, a sublanguage or dialect should be only used when the main language is not compatible with the messages, like when needs using different sentences or meanings, otherwise is better to simply use the main language." )"
+                    else
+                        $guitool --warning --text="$( eval_gettext "This is a new language which didn't existed previously for this translation, so we are going to create a new template for this type of language." )"
+                    fi
+
+                    if $guitool --question --text="$( eval_gettext "Please confirm first. Is the language identifier that you inserted the correct for your translations?" ) '$language_user'" ; then
+                        cp -f "$( dirname "$_tr_po" )/default.pot" "$_tr_po"
+                        el_debug "adding default english translation from 'default.pot':"
+                        svn add "$_tr_po"
+                        is_new_language_add_wanted=1
+                    else
+                        $guitool --error --text="$( eval_gettext "Please run again Eltrans selecting a different language to use." )"
+                        exit 1
+                    fi
+
                 else
-                    $guitool --error --text="$( eval_gettext "Please run again Eltrans selecting a different language to use." )"
+                    el_error "the '$language_user' language inserted by user doesn't seems to be a valid language identifier found in /etc/locale.gen"
+                    $guitool --error --text="$( eval_gettext "The selected language identifier doesn't seems to exist, if you think that this is an error in Eltrans tell us about it in the forums. Please run again Eltrans selecting a different language to translate." )"
                     exit 1
                 fi
-
-            else
-                el_error "the '$language_user' language inserted by user doesn't seems to be a valid language identifier found in /etc/locale.gen"
-                $guitool --error --text="$( eval_gettext "The selected language identifier doesn't seems to exist, if you think that this is an error in Eltrans tell us about it in the forums. Please run again Eltrans selecting a different language to translate." )"
-                exit 1
             fi
         fi
     fi
@@ -1181,7 +1193,7 @@ translate_new(){
 main(){
     el_debug
 
-    translated_message="$( printf "$( eval_gettext "Select the language variant (locale) that you want to translate to. Your system is actually set to '%s', for example 'pt' for Portuguese or like 'pt_BR' (brazilian portuguese) if you want to translate to a very specific type of language.\n\nIt is strongly recommended to use the short language code, because otherwise your translation does not cover the other variants. Use the long form only if you really want to translate to a specific version of your language\n\nTo improve the original English messages use 'en'." )" "${LANG%%_*}" )"
+    translated_message="$( printf "$( eval_gettext "Select the language variant (locale) that you want to translate to. Your system is actually set to '%s', for example 'pt' for Portuguese or like 'pt_BR' (brazilian portuguese) if you need to translate to a derivative language specifically (only if the main language is not compatible).\n\nIt is strongly recommended to use the short language code, because otherwise your translation does not cover the other variants. Use the long form only if you really want to translate to a specific version of your language\n\nTo improve the original English messages use 'en'." )" "${LANG%%_*}" )"
 
 
     [[ -x /usr/bin/xterm ]] && term=xterm
