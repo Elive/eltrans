@@ -394,7 +394,7 @@ translate_elive(){
             $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 80% of its original messages verified, we need to wait for a better proofreading first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
 
             if $guitool --question --text="$( eval_gettext "If you have good English skills, and you also know natively another common language like French or Spanish. You can help improving the English sentences using our mystical reverse-engineering method. Do you want to know more about it?" )" ; then
-                web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-proofread-the-original-messages-of-elive/1055"
+                web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-proofread-the-original-messages-of-elive/1055" &
             fi
 
             # do not translate this one
@@ -467,9 +467,6 @@ translate_elive(){
 
     translation_elive_install "$( basename $_tr_app_d )" "$_tr_app_d/${language_user}.po" "$language_user"
     commit_changes_elive "$( basename $_tr_app_d )" "${language_user}.po" "$_tr_app_d" "${language_user}"
-
-    update_translations
-    translate_new
 }
 ############################################################################
 translation_elive_install(){
@@ -588,7 +585,7 @@ commit_changes_elive(){
     message_error_sending_translations="$( printf "$( eval_gettext "Error sending your translation, if you are using a Wrong Username or Password for the send please remove the file '%s', if this is not the issue, you can use the 'Clean' option of Eltrans, but if you have important work saved, first do a backup of your directory '%s' and use meld with it and your backup after you have made Eltrans working again" )" "$preferences_f" "$translating_elive_d" )"
 
     if ((is_blklist)) ; then
-        $term -e bash -c "sleep 1"
+        $term -e bash -c "sleep 2"
         $guitool --info --text="Translation sent sucessfully, Thanks a lot for your collaboration, it can be reviewed soon and included directly on Elive the next time."
 
     else
@@ -596,7 +593,6 @@ commit_changes_elive(){
 #!/bin/bash
 
 if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans commit:  |${_tr_app}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}"  ; then
-    sleep 1
     $guitool --info --text="$( eval_gettext "Translation sent sucessfully. Thank you for your collaboration. It will be examined soon and included directly in Elive's next version. You can see your translation on http://dev.elivecd.org/timeline, where you can also look at other translations made by someone else. You can also see there who made the translation, look at the differences or recover an older translation if necessary." )" 1>/dev/null 2>&1
 
 else
@@ -661,8 +657,7 @@ add_translations_dir_elive(){
 #!/bin/bash
 echo 'Downloading translations...'
 
-svn --non-interactive --username "${pref_user_cached_v}" --password "${pref_pass_cached_v}" co svn://dev.elivecd.org/translations elive 2>"${logs_err}"
-sleep 2
+svn --non-interactive --username "${pref_user_cached_v}" --password "${pref_pass_cached_v}" co svn://dev.elivecd.org/translations elive 2>"${logs_err}" || sleep 2
 EOF
     chmod +x "${temp_script}"
     $term -e "${temp_script}"
@@ -1032,7 +1027,7 @@ translate_new(){
         #echo -e "Enlightenment 17" >> "$tempfile"
         #echo -e "$( eval_gettext "Basically, your Desktop and Graphical interface/system." )" >> "$tempfile"
 
-        { echo 10 ; sleep 40 ; } \
+        { echo 10 ; sleep 30 ; } \
             | $guitool --progress --text="$( eval_gettext "Counting translated messages..." )" --pulsate &
         pid_guitool_counting=$!
 
@@ -1259,9 +1254,11 @@ main(){
 
     select_language
 
-    update_translations
-
-    translate_new
+    while true
+    do
+        update_translations
+        translate_new
+    done
 
 }
 ############################################################################
