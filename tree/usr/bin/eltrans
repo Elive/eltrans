@@ -298,15 +298,6 @@ select_language(){
     ui_answer_check
     language_user="$ui_user_answered"
 
-    if [[ "$language_user" = "en" ]] ; then
-        # only a few allowed users can do proofreading at the moment
-        if ! echo "$pref_user_cached_v" | grep -qsiE "(Thanatermesis)" ; then
-            $guitool --error --text="$( eval_gettext "Sorry! At the moment only a few people is allowed to correct the original messages in English. We do this to simply ensure the best quality of the messages for the Elive applications. You can found more info about this topic in our Forums." )"
-            $FUNCNAME
-            return 0
-        fi
-    fi
-
     el_check_variables "language_user"
     verify_locale_supported "$language_user" select_language
 
@@ -389,7 +380,15 @@ translate_elive(){
     count_messages_completed "$_tr_app_d/en.po"
 
     if [[ "$count_percent_translate_v" -lt "80" ]] ; then
-        if ! [[ "${language_user}" = "en" ]] ; then
+
+        if [[ "${language_user}" = "en" ]] ; then
+            if ! echo "$pref_user_cached_v" | grep -qsiE "(Thanatermesis)" ; then
+
+                $guitool --error --text="$( eval_gettext "Sorry! Translations require at least 80% of their original messages verified. We do this to ensure the good quality of the messages and the strict use of our special technique, so only approved users can be proofreaders. You can found more info about this topic in our Forums." )"
+                # do not translate this one
+                return 0
+            fi
+        else
             #$guitool --warning --text="$( eval_gettext "In this translation less than 80% of the original messages have been proofread. If you have good English skills, please proofread them. We suggest to translate another application for now. Otherwise you risk doing the translation twice, since the proofreading may result in different message texts." )"
             $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 80% of its original messages verified, we need to wait for a better proofreading first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
 
@@ -416,15 +415,15 @@ translate_elive(){
             if ! $guitool --question --text="$( eval_gettext "Do you want to continue editing this translation? Otherwise you can select another element to translate in the list" )" ; then
                 return 0
             fi
-        fi
-    fi
+            fi
+            fi
 
 
-    count_messages_completed "$_tr_app_d/${language_user}.po"
+            count_messages_completed "$_tr_app_d/${language_user}.po"
 
-    if [[ "$count_msg_fuzzy_v" -ge "10" ]] ; then
-        el_notify normal gtranslator "$( eval_gettext "Eltrans suggestion" )" "$( eval_gettext "Eltrans: If there's messages needing an update ('Needs Work' type), but they are correctly translated, you can press Ctrl + Enter to mark it as valid." )"
-    fi
+            if [[ "$count_msg_fuzzy_v" -ge "10" ]] ; then
+                el_notify normal gtranslator "$( eval_gettext "Eltrans suggestion" )" "$( eval_gettext "Eltrans: If there's messages needing an update ('Needs Work' type), but they are correctly translated, you can press Ctrl + Enter to mark it as valid." )"
+            fi
 
     #
     # HOOKS pre
