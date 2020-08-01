@@ -606,6 +606,11 @@ EOF
         if [[ -s "${logs_err}" ]]; then
             cat "${logs_err}" | $guitool --text-info --width=650 --height=400
             rm -f "${logs_err}"
+            # move translation for a possible review
+            mkdir -p /tmp/translations-${USER}-$$/
+            mv -f "${_tr_po_f}" /tmp/translations-${USER}-$$/
+            $guitool --warning --text="$( eval_gettext "Your conflicting translation has been deleted in order to download a new clean copy the next time you run Eltrans. If you want to recover manually or merge it using the Meld tool, you can find it on the directory: " ) /tmp/translations-${USER}-$$/"
+
             exit
         fi
     fi
