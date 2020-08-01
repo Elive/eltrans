@@ -571,7 +571,9 @@ commit_changes_elive(){
 
     rm -f "${temp_mo}" "${logs_err}"
 
-    svn add "${_tr_po_f}"  2>/dev/null || true
+    # note: do not add, otherwise a conflicting file could be sent probably
+    #el_debug "svn add '${_tr_po_f}'"
+    #svn add "${_tr_po_f}"  2>/dev/null || true
 
     for blklisted in "$( curl http://main.elivecd.org/tmp/blklisted-translators 2>/dev/null )"
     do
@@ -591,7 +593,8 @@ commit_changes_elive(){
         cat > "${temp_script}" << EOF
 #!/bin/bash
 
-if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans commit:  |${_tr_app}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}"  ; then
+if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans commit:  |${_tr_app}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}" "${_tr_po_f}"  ; then
+
     $guitool --info --text="$( eval_gettext "Translation sent sucessfully. Thank you for your collaboration. It will be examined soon and included directly in Elive's next version. You can see your translation on http://dev.elivecd.org/timeline, where you can also look at other translations made by someone else. You can also see there who made the translation, look at the differences or recover an older translation if necessary." )" 1>/dev/null 2>&1
 
 else
