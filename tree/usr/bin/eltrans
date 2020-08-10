@@ -1,27 +1,4 @@
 #!/bin/bash
-# FIXME: do not allow translations when the english is not reviewed yet, at least a minimum (and warning when there's remaining ones)
-# FIXME: automatic notification to translators when there's new messages ?
-# FIXME: proofreading mode: if the translator has a question, suggest to use xchat for it
-# FIXME: disable all e17 parts or at least use the newer E git
-# TODO: feature with "meld" to fix conflicts
-
-# MIGRATION:
-# TODO  COMMENT COMMENT!
-# TODO: improve variablenames and funciontnames
-# TODO: do not use $1 (et al) variables
-# TODO: read the code searching bugs or bad structure
-# TODO: put local variables where is needed, or make them better (search for unset's)
-# TODO: check all the variables before to use them
-# TODO: add grammar checker tool (directly inside poedit hack? that could be easier to write)
-
-# TODO: update Project-Id-Version value
-# TODO: add a version thing system with migration system included
-# TODO: make obsolete the old translations system
-# TODO: add a system of "percentage of grammar completed" (in the description.txt maybe)
-# TODO: change (all?) the notify calls (popup) to be in the instructions one
-
-# remove reported issues in github
-
 SOURCE="$0"
 source /usr/lib/elive-tools/functions
 EL_REPORTS="1"
