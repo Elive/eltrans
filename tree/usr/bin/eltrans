@@ -424,6 +424,10 @@ translate_elive(){
     sed -i '/msgstr ""[^[:blank:]]/s|msgstr ""*|msgstr "|g' "$_tr_app_d/${language_user}.po"
 
     # run poedit
+    local message_saving_translation_submit
+    message_saving_translation_submit="$( printf "$( eval_gettext "To send your translations made to Elive. Save your editing and close the Poedit application when you have finished. " )" "" )"
+
+    ( sleep 1m ; source /usr/lib/elive-tools/functions ; el_notify normal logo-elive "Eltrans Saving" "${message_saving_translation_submit}" ) &
     poeditor "$_tr_app_d/${language_user}.po"
 
     #
