@@ -283,9 +283,9 @@ select_language(){
     if [[ "$language_user" = "en" ]] ; then
         if ! el_flag check proofreading_warning_show ; then
             #$guitool --info --text="$( eval_gettext "Thank you for collaborating in the proofreading of the messages. In your systray you can find a grammar checker tool. If you think that the spelling of the original messages is incorrect or not giving the right information to the user, feel free to improve them. If you do not understand what a message means, ask the developers." )"
-            $guitool --info --text="$( eval_gettext "IMPORTANT: The quality of the automatic pre-translations depends heavily on the grammatical and syntactical accuracy and correctness of the English text. For this, we use a special reverse-engineering trick explained in the forum. Using the Google Translator website in the inverse way, you need to examine the automated translation to a common language like Spanish or French, and modify it until the automated translation is correct. When everything looks good, copy back the english message to use it, if not, change a word or rewrite the sentence. This will save a lot of time to all the translators and will make the messages clearer and more understandable." )"
+            $guitool --info --text="$( eval_gettext "IMPORTANT: The quality of the automatic pre-translations depends heavily on the grammatical and syntactical accuracy and correctness of the English text. For this, we use a special reverse-engineering trick explained in the forum. Using the Google Translator website in an inverse way, you need to examine the automated translation to a common language like Spanish or French, and modify it until the automated translation is correct. When everything looks good, use the new English message in Eltrans, if not, change a word or rewrite the sentence. This will save a lot of time for all the translators and will make the messages clearer and more understandable. More information about this technique can be found in the Forums." )"
 
-            if ! $guitool --question --text="$( eval_gettext "Do you know already the procedure of the english proofreading method we use?" )" ; then
+            if ! $guitool --question --text="$( eval_gettext "Do you know already the procedure of the English proofreading method we use?" )" ; then
                 web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-improve-the-english-sentences-in-elive-proofreading/1055" &
             fi
 
@@ -294,7 +294,7 @@ select_language(){
 
         # always have a window of google translator opened:
         if ! ps ux | grep -v grep | grep -qs "web-launcher.*translate.google.com" ; then
-            el_notify normal gtranslator "Google Translator" "$( eval_gettext "Do not close the google-translator window. You need it to do follow the proofreading method that we use for the Elive messages." )"
+            el_notify normal gtranslator "Google Translator" "$( eval_gettext "Do not close the google-translator window. You should follow the proofreading method that we use to proofread the Elive messages." )"
             # always run a web browser with google translator since its the needed tool to use for it
             web-launcher --incognito --app="https://translate.google.com" &
         fi
@@ -389,7 +389,7 @@ translate_elive(){
         if [[ "$recent_changes_authors" != "Thanatermesis" ]] ; then
             $guitool --warning --text="$( eval_gettext "The file that you want to translate, has been modified in the last 3 days by other collaborators. You should not worry about this message and is only a notification to know about that other translator worked recently on the same file in order to avoid possible conflicts between versions translated.\n\nThese translators was:" ) '$recent_changes_authors' "
 
-            if ! $guitool --question --text="$( eval_gettext "Do you want to continue editing this translation? Otherwise you can select another element to translate in the list" )" ; then
+            if ! $guitool --question --text="$( eval_gettext "Do you want to continue editing this translation? Otherwise, you can select another application to translate" )" ; then
                 return 0
             fi
             fi
@@ -399,7 +399,7 @@ translate_elive(){
             count_messages_completed "$_tr_app_d/${language_user}.po"
 
             if [[ "$count_msg_fuzzy_v" -ge "10" ]] ; then
-                el_notify normal gtranslator "$( eval_gettext "Eltrans suggestion" )" "$( eval_gettext "Eltrans: If there's messages needing an update ('Needs Work' type), but they are correctly translated, you can press Ctrl + Enter to mark it as valid." )"
+                el_notify normal gtranslator "$( eval_gettext "Suggestion" )" "$( eval_gettext "Tip: If there are messages needing an update ('Needs Improvement' type), but they are correctly translated, you can press Ctrl + Enter to mark it as valid." )"
             fi
 
     #
@@ -564,7 +564,7 @@ commit_changes_elive(){
     done
 
     local message_error_sending_translations
-    message_error_sending_translations="$( printf "$( eval_gettext "Error sending your translation, if you are using a Wrong Username or Password for the send please remove the file '%s', if this is not the issue, you can use the 'Clean' option of Eltrans, but if you have important work saved, first do a backup of your directory '%s' and use meld with it and your backup after you have made Eltrans working again" )" "$preferences_f" "$translating_elive_d" )"
+    message_error_sending_translations="$( printf "$( eval_gettext "Error sending your translation. If you are using a Wrong Username or Password please remove the file '%s', you can also try the 'Clean' option. But if you have important work saved, first do a backup of your directory '%s' and use meld with it and your backup after you have made Eltrans working again" )" "$preferences_f" "$translating_elive_d" )"
 
     if ((is_blklist)) ; then
         $term -e bash -c "sleep 2"
@@ -850,7 +850,7 @@ verify_locale_supported(){
     el_check_variables "_function_extra|_tr_lang"
 
     if ! cat "/usr/share/i18n/SUPPORTED" | tr '.' ' ' | tr '@' ' ' | awk '{print $1}' | LC_ALL=C grep -q "${_tr_lang}"  ; then
-        $guitool --error --text="$( eval_gettext "Error: The language you selected is not supported by your system. Choose from the list of supported languages:" )""
+        $guitool --error --text="$( eval_gettext "The language you selected is not supported by your system. Choose one from the list:" )""
         $( cat /usr/share/i18n/SUPPORTED | tr '.' ' ' | tr '@' ' ' | awk '{print $1}' | LC_ALL=C grep ${_tr_lang%%_*} )"
 
         "$_function_extra"
@@ -1146,7 +1146,7 @@ translate_new(){
 
         echo -e "Clean" >> "${tempfile}_order_8_"
         echo -e "-" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Cleanups and fixes in Eltrans" )" >> "${tempfile}_order_8_"
+        echo -e "$( eval_gettext "Cleanups and fixes in your saved copy of translations" )" >> "${tempfile}_order_8_"
         echo -e "$( eval_gettext "Remove your translations dir to avoid conflicts." )" >> "${tempfile}_order_8_"
 
 
@@ -1233,7 +1233,7 @@ main(){
         web-launcher "https://www.elivecd.org/contact" &
         sleep 15
 
-        $guitool --info --text="$( eval_gettext "Enter your username and password after to have activated your account." )"
+        $guitool --info --text="$( eval_gettext "Enter your username and password after to have created your account." )"
         preferences_edit
     fi
 
