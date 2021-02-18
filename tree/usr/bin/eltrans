@@ -372,8 +372,8 @@ translate_elive(){
     fi
 
     # recent changes in last 3 days:
-    recent_changes_diffed="$( svn diff -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" 2>/dev/null | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" | grep "^+msgstr " )"
-    recent_changes_authors="$( svn log -v -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" 2>/dev/null | colors-remove | grep -E "^r[[:digit:]]+ " | awk '{print $3}' | sort -u | grep "[[:alnum:]]" | tr '\n' ' ' )"
+    recent_changes_diffed="$( svn diff --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" 2>/dev/null | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" | grep "^+msgstr " )"
+    recent_changes_authors="$( svn log -v --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" 2>/dev/null | colors-remove | grep -E "^r[[:digit:]]+ " | awk '{print $3}' | sort -u | grep "[[:alnum:]]" | tr '\n' ' ' )"
     read -r recent_changes_authors <<< "$recent_changes_authors"
 
     # if somebody also edited the same translation in the last 3 days, tell the translator about it
@@ -453,7 +453,7 @@ translation_elive_install(){
     el_check_variables "_tr_lang|_tr_po|_tr_app"
     el_check_files "${_tr_po}"
 
-    svndiff="$( svn diff | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" || true )"
+    svndiff="$( svn diff --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" || true )"
 
     if [[ -n "$svndiff" ]] ; then
         if $guitool --question --text="$( eval_gettext "Install and use your translation in your system now? It is suggested to test yourself the made translations before to send them to Elive in order to verify that everything looks correct and consistent." )" ; then
@@ -913,13 +913,13 @@ count_messages_completed(){
             # copy from template
             cp -f "$( dirname "$_tr_po" )/default.pot" "$_tr_po"
             el_debug "adding default english translation from 'default.pot':"
-            svn add "$_tr_po"
+            svn add --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" "$_tr_po"
         else
 
             if ((is_new_language_add_wanted)) ; then
                 cp -f "$( dirname "$_tr_po" )/default.pot" "$_tr_po"
                 el_debug "adding default english translation from 'default.pot':"
-                svn add "$_tr_po"
+                svn add --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" "$_tr_po"
             else
                 el_error "$_tr_po doesn't exist"
                 # check if language really exist:
