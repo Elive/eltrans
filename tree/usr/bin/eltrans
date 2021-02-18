@@ -711,7 +711,7 @@ EOF
 
 
             local translated_message
-            translated_message="$( printf "$( eval_gettext "IMPORTANT: There was an update of the file '%s' that conflicted with your version. It was removed, so that Eltrans can work correctly. If you had on it an old translation that you do not want to lose, you can use with caution the tool '%s', to compare and merge the contents, its important to respect the source code of these files and especially to keep the same newlines on them. If you want to do that, close now eltrans and run this command, after, start eltrans again and send your translation. The command is:" )" "${conflicted_file_f}" "meld" )\n\nmeld /tmp/${USER}-translations-eltrans ${translating_d}"
+            translated_message="$( printf "$( eval_gettext "IMPORTANT: There was an update of the file '%s' that conflicted with your version. It was removed so that Eltrans can work correctly. If you had on it an old translation that you do not want to lose, you can use with caution the tool '%s', to compare and merge the contents, it's important to respect the correct structure of these files and especially to keep the same newline characters on them. If you want to do that, close now Eltrans and run this command, after, start Eltrans again and send your translation. The command is:" )" "${conflicted_file_f}" "meld" )\n\nmeld /tmp/${USER}-translations-eltrans ${translating_d}"
 
             $guitool --warning --text="${translated_message}"
 
