@@ -1139,8 +1139,8 @@ translate_new(){
 
         echo -e "Clean" >> "${tempfile}_order_8_"
         echo -e "-" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Cleanups and fixes in your saved copy of translations" )" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Remove your translations dir to avoid conflicts." )" >> "${tempfile}_order_8_"
+        echo -e "$( eval_gettext "Download fresh translations" )" >> "${tempfile}_order_8_"
+        echo -e "$( eval_gettext "Delete entirely your translations directory to avoid conflicts." )" >> "${tempfile}_order_8_"
 
 
         kill "$pid_guitool_counting" 1>/dev/null 2>&1 || true
