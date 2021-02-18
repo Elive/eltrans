@@ -349,18 +349,18 @@ translate_elive(){
     # count english proofreading
     count_messages_completed "$_tr_app_d/en.po"
 
-    if [[ "$count_percent_translate_v" -lt "80" ]] ; then
+    if [[ "$count_percent_translate_v" -lt "90" ]] ; then
 
         if [[ "${language_user}" = "en" ]] ; then
             if ! echo "$pref_user_cached_v" | grep -qsiE "(Thanatermesis)" ; then
 
-                $guitool --error --text="$( eval_gettext "Sorry! Translations require at least 80% of their original messages verified. We do this to ensure the good quality of the messages and the strict use of our special technique, so only approved users can be proofreaders. You can found more info about this topic in our Forums." )"
+                $guitool --error --text="$( eval_gettext "Sorry! Translations require at least 90% of their original messages verified. We do this to ensure the good quality of the messages and the strict use of our special technique. You can found more details in our Forums." )"
                 # do not translate this one
                 return 0
             fi
         else
-            #$guitool --warning --text="$( eval_gettext "In this translation less than 80% of the original messages have been proofread. If you have good English skills, please proofread them. We suggest to translate another application for now. Otherwise you risk doing the translation twice, since the proofreading may result in different message texts." )"
-            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 80% of its original messages verified, we need to wait for a better proofreading first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
+            #$guitool --warning --text="$( eval_gettext "In this translation less than 90% of the original messages have been proofread. If you have good English skills, please proofread them. We suggest to translate another application for now. Otherwise you risk doing the translation twice, since the proofreading may result in different message texts." )"
+            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 90% of its original messages verified, we need to wait for a better proofreading first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
 
             if $guitool --question --text="$( eval_gettext "If you have good English skills, and you also know natively another common language like French or Spanish. You can help improving the English sentences using our mystical reverse-engineering method. Do you want to know more about it?" )" ; then
                 web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-proofread-the-original-messages-of-elive/1055" &
@@ -854,7 +854,7 @@ clean_elive_dir(){
     el_debug
      local ui_user_answered
 
-     ui_user_answered="$( $guitool --list --width=520 --height=300 --text="$( eval_gettext "Select this option to remove your translations directory or to revert to a previous commit (Important: If you erroneously have sent a wrong translation, you have to select this option)" )" --column="$( eval_gettext "Option" )" --column="$( eval_gettext "Description" )" "Purge" "$( eval_gettext "This option removes the entire directory with your translations." )" "Account" "$( eval_gettext "Resets your username and password configurations" )" "Revert" "$( eval_gettext "This option lets you undo a wrong translation, which you sent by mistake." )" || echo cancel )"
+     ui_user_answered="$( $guitool --list --width=640 --height=300 --text="$( eval_gettext "Select this option to remove your translations directory or to revert to a previous commit (Important: If you erroneously have sent a wrong translation, you have to select this option)" )" --column="$( eval_gettext "Option" )" --column="$( eval_gettext "Description" )" "Purge" "$( eval_gettext "This option removes the entire directory with your translations." )" "Account" "$( eval_gettext "Resets your username and password configurations" )" "Revert" "$( eval_gettext "This option lets you undo a wrong translation, which you sent by mistake." )" || echo cancel )"
     ui_answer_check
 
     case "$ui_user_answered" in
@@ -959,15 +959,15 @@ count_messages_completed(){
     count_msg_all_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgid \"\")/ ){next}}; { if ($0 ~ /^msgid "/) {count++} }; END {print count}' "$_tr_po" )"
     [[ -z "$count_msg_all_v" ]] && count_msg_all_v=0
 
+    # messages translated
+    count_msgstr_all_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgstr \"\")/ ){next}}; { if ($0 ~ /^msgstr "/) {count++} }; END {print count}' "$_tr_po" )"
+    [[ -z "$count_msgstr_all_v" ]] && count_msgstr_all_v=0
+
     # how much fuzzy's we have?
     count_msg_fuzzy_v="$( awk 'NR<=12 { next }; { if (prev ~ /^#.*fuzzy/ && $0 ~ /^msgid / ) {count++}; prev=$0 } END{print count}' "$_tr_po" )"
     #count_msg_fuzzy_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgid \"\")/ ){next}}; { if ($0 ~ /^#.*fuzzy/) {count++} }; END {print count}' "$_tr_po" )"
     [[ -z "$count_msg_fuzzy_v" ]] && count_msg_fuzzy_v=0
     # count the wrong fuzzys
-
-    # messages translated
-    count_msgstr_all_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgstr \"\")/ ){next}}; { if ($0 ~ /^msgstr "/) {count++} }; END {print count}' "$_tr_po" )"
-    [[ -z "$count_msgstr_all_v" ]] && count_msgstr_all_v=0
 
     # messages with translations
     #count_msg_translated_v="$(( $count_msgstr_all_v - $count_msg_fuzzy_v ))" # fuzzy's dont count as real translations
@@ -1019,8 +1019,8 @@ translate_new(){
 
                 tr_name_v="$( basename "$item_v" )"
 
-                # FIXME: deleteme
-                #[[ "$tr_name_v" != "elive-news" ]] && continue
+                # FIXME: for testing and debug purposes:
+                #[[ "$tr_name_v" != "extra-features" ]] && continue
 
                 # ignore deactivated translations
                 if ! LC_ALL=C  grep -qs "^enabled:::yes$" "${item_v}/settings" ; then
@@ -1058,13 +1058,8 @@ translate_new(){
                     #if [[ "$item_v" = *smb-browser ]] ; then
                         #set -x
                     #fi
-                    if [[ "$item_lang_v" = "en" ]]; then
-                        count_percent_proofread_v="100"
-                    else
                         count_messages_completed "${item_v}/en.po"
                         count_percent_proofread_v="$count_percent_translate_v"
-                    fi
-                    #set +x
 
                     count_messages_completed "${item_v}/${item_lang_v}.po"
                     tr_sentences_v="$count_msg_all_v"
@@ -1084,37 +1079,28 @@ translate_new(){
                     fi
 
                     # Normal description set for different percentages
-                    if [[ "$count_percent_proofread_v" -lt 80 ]] ; then
-                        tr_completed_v="Needs more English proofreading (${count_percent_proofread_v}% done)"
+                    if [[ "$count_percent_proofread_v" -lt 90 ]] ; then
+                        if [[ "${item_lang_v}" = "en" ]] ; then
+                            tr_completed_v="Requires verifications (${count_percent_proofread_v}% done)"
+                        else
+                            tr_completed_v="Needs English proofreading (${count_percent_proofread_v}% done)"
+                        fi
                         item_order_v=7
                     else
-                        if [[ "${count_percent_translate_v}" = "100" ]] ; then
-                            if [[ "${item_lang_v}" = "en" ]] ; then
-                                tr_completed_v="Completed ${count_percent_translate_v} %"
-                                item_order_v=6
-                            else
-                                if [[ "${count_percent_fuzzy_v}" = "100" ]] ; then
-                                    tr_completed_v="Completed ${count_percent_translate_v} %"
-                                    item_order_v=6
-                                else
-                                    tr_completed_v="${count_percent_translate_v}% translated (${item_lang_v}), ${count_percent_fuzzy_v}% Reviewed"
-                                    item_order_v=3
-                                fi
-                            fi
+
+                        if [[ "${count_percent_translate_v}" = "100" ]] && [[ "${count_percent_fuzzy_v}" = "100" ]] ; then
+                            tr_completed_v="Completed ${count_percent_translate_v} %"
+                            item_order_v=6
                         else
                             if [[ "${item_lang_v}" = "en" ]] ; then
-                                if [[ "${count_percent_fuzzy_v}" = "100" ]] ; then
-                                    tr_completed_v="${count_percent_translate_v}% Proofreaded"
-                                else
-                                    tr_completed_v="${count_percent_translate_v}% Proofreaded, ${count_percent_fuzzy_v}% Reviewed"
-                                fi
+                                tr_completed_v="${count_percent_translate_v}% Verified, ${count_percent_fuzzy_v}% Proofread"
                             else
-                                tr_completed_v="${count_percent_translate_v}% translated (${item_lang_v}), ${count_percent_fuzzy_v}% Reviewed"
+                                tr_completed_v="${count_percent_translate_v}% Translated (${item_lang_v}), ${count_percent_fuzzy_v}% Proofread"
                             fi
-                            item_order_v=2
+
+                            item_order_v=3
                         fi
                     fi
-
                 fi
 
 
@@ -1137,16 +1123,16 @@ translate_new(){
             fi
         done
 
-        echo -e "Clean" >> "${tempfile}_order_8_"
+        echo -e "Cleanups" >> "${tempfile}_order_8_"
         echo -e "-" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Download fresh translations" )" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Delete entirely your translations directory to avoid conflicts." )" >> "${tempfile}_order_8_"
+        echo -e "$( eval_gettext "Purge, undo or remove" )" >> "${tempfile}_order_8_"
+        echo -e "$( eval_gettext "Management of your conflicting translations." )" >> "${tempfile}_order_8_"
 
 
         kill "$pid_guitool_counting" 1>/dev/null 2>&1 || true
 
 
-        ui_user_answered="$( cat ${tempfile}_order_* | $guitool --list --width=840 --height=540 --title="$( eval_gettext "Select an element." )" --text="$( eval_gettext "Select an element that you want to translate or to update in an already existing translation.\nThe first elements in the list are the most needed ones, they are sorted like this on purpose." )" --column="$( eval_gettext "Element" )" --column="$( eval_gettext "Phrases" )" --column="$( eval_gettext "Complete" )" --column="$( eval_gettext "Description" )" || echo cancel )"
+        ui_user_answered="$( cat ${tempfile}_order_* | $guitool --list --width=840 --height=540 --title="$( eval_gettext "Select an element." )" --text="$( eval_gettext "Select an element that you want to translate or to update in an already existing translation.\nThe first elements in the list are the most needed ones, they are sorted like this on purpose." )" --column="$( eval_gettext "Element" )" --column="$( eval_gettext "Phrases" )" --column="$( eval_gettext "Completion" )" --column="$( eval_gettext "Description" )" || echo cancel )"
         ui_answer_check
 
         rm -f "$tempfile" ${tempfile}_order_* || true
@@ -1157,7 +1143,7 @@ translate_new(){
         "Enlightenment 17")
             translate_e17_new_language
             ;;
-        "Clean")
+        "Cleanups")
             clean_elive_dir
             ;;
         *)
