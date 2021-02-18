@@ -185,7 +185,7 @@ instructions_show(){
         return
     fi
 
-    help_main="$( eval_gettext "How to use Eltrans
+    help_main="How to use Eltrans
 ==============
 - Every line includes a message, click on them and it will appear in 'Source language', the 'Translation' box will be your translated equivalent to that sentence
 - Sometimes the sentences include strange codes like '%s', it's important to NOT alter these elements since they are part of the source code of the application, doing it will make the application work incorrectly
@@ -224,7 +224,7 @@ Important notes:
   - Words wrongly translated, like 'kernel' sometimes are wrongly translated, using caps like Kernel or KERNEL makes it correctly translated.
   - Using 'computer' or 'machine' has different translations, you should use the synonym that better creates the automated translation.
   - If the original message is just correct, you can recyclate it fastly pressing 'Ctrl + b'
-    " )"
+"
 
     echo "$help_main" | $guitool --text-info --title="How to use eltrans" --width=540 --height=500 1>/dev/null &
 
