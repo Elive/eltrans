@@ -187,50 +187,43 @@ instructions_show(){
 
     help_main="$( eval_gettext "How to use Eltrans
 ==============
-- Every line includes a message, click in them and it will appear in 'Source language', the 'Translation' box will be your translated equivalent to that sentence
-- Sometimes the sentences includes strange codes like '%s', its important to NOT alter these elements since its part of the source code of the application, doing it will make the application work incorrectly
-- Use the listed hotkeys as much as possible, like Ctrl + Enter to save it and go to the next sentence.
-- Save the file and send your translations if they are correct, every 30 minutes is a suggested number to avoid conflicts with other translators
-- 'Needs Work' sentences (orange lines) are sometimes pre-translations or simply not verified by humans, they just need a revision to mark it as correct or a small modification to make them understandable, when they are revised press Ctrl + Enter to mark it as valid and going to the next one.
-- Use the Clean feature if you want to delete your state and download again the updated translations
+- Every line includes a message, click on them and it will appear in 'Source language', the 'Translation' box will be your translated equivalent to that sentence
+- Sometimes the sentences include strange codes like '%s', it's important to NOT alter these elements since they are part of the source code of the application, doing it will make the application work incorrectly
+- Use the listed hotkeys as much as possible, like Ctrl + Enter to save the sentence and going to the next sentence.
+- Save the file and send your translations if they are correct, every 30 minutes is a suggested number to avoid conflicts with other translators.
+- 'Needs Work' sentences (named fuzzy, may be shown in orange) are sometimes pre-translations or simply not verified by humans, they just need a revision to mark it as correct or a small modification to make them understandable or correctly spoken. When they are revised press Ctrl + Enter to mark it as valid and going to the next one.
+- Use the Clean feature if you want to delete your state and download unmodified by you, and updated translations.
 
 Conflicts with other Translators
 ============================
-If you have a conflict in your file it means that more than one person worked at the same time in hte same file. This tool should feature an automated way to fix them, but is important to understand why this happens and how it works, for example:
+If you have a conflict in your file it means that more than one person worked at the same time in the same file. This tool should feature an automated way to fix them, but is important to understand why this happens and how it works, for example:
 - msgid is an original sentence, msgstr is the translation to that sentence
 - comments include information, like 'fuzzy' is the mark that means 'Needs Work'
-- the structure of the .po files needs to be perfect, like its needed an empty newline (and only one) between both sentence identifiers
 
 Original Messages
-==============
-The original messages may be not spelled correctly or is not clear to understand, they needs to be as short as possible without losing important information, if they needs to be improved this can be done from the Proofreading step (translating to English)
+===============
+The original messages could be not spelled correctly or are not clear to understand. They need to be as short as possible without losing important information. If they need to be improved this can be done from the Proofreading step (translating to English)
 
-Before to make a translation to a wrong sentence is better to skip it and improve the original message than translating it
+If you are translating to another language and the English original message is wrong, don't translate it, instead run again Eltrans and fix it by 'translating to English'. It is very important to have the original sentences well-spoken.
 
 Grammar Checking
 ===============
-There's some tips you can use for improve the grammar:
-- Check if you have an 'LT' icon in your system, where you can paste the contents on it
-- Alternatively, you can use a grammar checking website or a browser plugin, like Sapling or Grammarly
-- Paste the contents in google translator, if the automated translation is correctly translated, then has an optimal grammar
+There are some tips you can use to improve the grammar:
+- Paste the contents in google translator, check the automated translation to another language to see if your original sentence has correct grammar and structure.
+- You can also use a grammar checking browser plugin (or website), like Sapling or Grammarly.
 
-Proofreads:
-============
-Proofreading option requires to verify and optimize each sentence to be the most optimal possible and using the best grammar for automatically translate them:
-- open google translator and select to translate to a common langauge like Spanish or French
-- paste on it the contents of the sentence, and start modifying it to be the shortest and clear as possible, while verifying that the equivalent translation is correctly made
-- if google translator doesn't translates it correctly, change your sentence using different words or composition until it translates correctly, then you obtained the best sentence to use
-- Some tips:
-  - words wrongly transalted, like 'kernel' sometimes is wrongly translated, using Kernel or KERNEL makes it correctly translate
-  - using 'computer' or 'machine' has a different tranlation, use the sysonyms that best translates correctly
-If you are doing corrections this means that these messages are mostly automatically generated, they can include the correct words but maybe not correctly spelled, not in human language or not understandable, simply improve them and press Ctrl + Enter
-  - If the original message is just correct, you can recyclate it fastly pressing 'Ctrl + b'
+English proofreading:
+=================
+The English improvement of messages requires to verify and optimize each sentence to be the most optimal and short possible, and using the best grammar to automatically translate them, that we have a special technique to follow:
+- Open google translator and select to translate to a common language like Spanish or French.
+- Paste the contents of the sentence, and start modifying it to be the shortest and clear as possible, while verifying that the equivalent translation is making correctly.
+- If google translator doesn't translate it correctly, change your sentence using different words or compositions until it translates correctly, then you obtained the best sentence that we need to use.
 
-Moving Faster:
+Important notes:
 ==============
-
-For moving faster to the next message, press TAB, the down-key, and again TAB
-
+  - Words wrongly translated, like 'kernel' sometimes are wrongly translated, using caps like Kernel or KERNEL makes it correctly translated.
+  - Using 'computer' or 'machine' has different translations, you should use the synonym that better creates the automated translation.
+  - If the original message is just correct, you can recyclate it fastly pressing 'Ctrl + b'
     " )"
 
     echo "$help_main" | $guitool --text-info --title="How to use eltrans" --width=540 --height=500 1>/dev/null &
