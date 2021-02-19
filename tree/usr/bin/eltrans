@@ -8,6 +8,7 @@ el_make_environment
 TEXTDOMAIN="eltrans"
 export TEXTDOMAIN
 
+# TODO: try to implement all the terminal popups to the same terminal using -into (only xterm) and tmux (to not close it accidentally), as suggested by TheTechRobo https://forum.elivelinux.org/t/proofreading-english-using-eltrans/2266/40
 
 pwd_orig="$(pwd)"
 translating_d="$HOME/Projects/translations"
