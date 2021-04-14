@@ -380,21 +380,21 @@ translate_elive(){
     # if somebody also edited the same translation in the last 3 days, tell the translator about it
     if [[ -n "$recent_changes_diffed" ]] ; then
         # only me? ignore...
-        if [[ "$recent_changes_authors" != "Thanatermesis" ]] ; then
+        if [[ "$recent_changes_authors" != "${pref_user_cached_v}" ]] ; then
             $guitool --warning --text="$( eval_gettext "The file that you want to translate, has been modified in the last 3 days by other collaborators. You should not worry about this message and is only a notification to know about that other translator worked recently on the same file in order to avoid possible conflicts between versions translated.\n\nThese translators was:" ) '$recent_changes_authors' "
 
             if ! $guitool --question --text="$( eval_gettext "Do you want to continue editing this translation? Otherwise, you can select another application to translate" )" ; then
                 return 0
             fi
-            fi
-            fi
+        fi
+    fi
 
 
-            count_messages_completed "$_tr_app_d/${language_user}.po"
+    count_messages_completed "$_tr_app_d/${language_user}.po"
 
-            if [[ "$count_msg_fuzzy_v" -ge "10" ]] ; then
-                el_notify normal gtranslator "$( eval_gettext "Suggestion" )" "$( eval_gettext "Tip: If there are messages needing an update ('Needs Improvement' type), but they are correctly translated, you can press Ctrl + Enter to mark it as valid." )"
-            fi
+    if [[ "$count_msg_fuzzy_v" -ge "10" ]] ; then
+        el_notify normal gtranslator "$( eval_gettext "Suggestion" )" "$( eval_gettext "Tip: If there are messages needing an update ('Needs Improvement' type), but they are correctly translated, you can press Ctrl + Enter to mark it as valid." )"
+    fi
 
     #
     # HOOKS pre
