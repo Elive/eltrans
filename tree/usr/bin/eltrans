@@ -26,7 +26,7 @@ temp_script="${tempdir}/script.sh"
 is_mode_only_e17="0"
 
 # version of this tool, for compatibility
-export eltrans_version_v="4"
+export eltrans_version_v="5"
 
 
 rm -rf "${tempdir}"
@@ -298,19 +298,24 @@ select_language(){
 ############################################################################
 translate_elive(){
     el_debug
-
     local is_base_translation_avail _tr_app_d _tr_package_version_v
 
     _tr_app_d="$1"
-    el_check_variables "_tr_app_d"
+
+    tr_version_v="$( LC_ALL=C awk -v FS=":::" '{if ($1 == "version_min") print $2 }' "${_tr_app_d}/settings" | tail -1 )"
+    tr_description_v="$( LC_ALL=C awk -v FS=":::" '{if ($1 == "description") print $2 }' "${_tr_app_d}/settings" | tail -1 )"
+    tr_package_name_v="$( LC_ALL=C awk -v FS=":::" '{if ($1 == "package_name") print $2 }' "${_tr_app_d}/settings" | tail -1 )"
+    tr_domain_v="$( LC_ALL=C awk -v FS=":::" '{if ($1 == "domain") print $2 }' "${_tr_app_d}/settings" | tail -1 )"
 
     if ! el_check_dirs "$_tr_app_d" ; then
-
-        local translated_message
         translated_message="$( printf "$( eval_gettext "The directory %s does not exist." )" "${_tr_app_d}" )"
-
         $guitool --warning --text="$translated_message"
+        translate_new
+        exit 0
+    fi
 
+    if ! el_check_variables "$tr_domain_v" ; then
+        $guitool --warning --text="$( printf "Domain value missing for the %s translation. Select another one." "${_tr_app_d}" )"
         translate_new
         exit 0
     fi
@@ -353,14 +358,13 @@ translate_elive(){
     if [[ "$count_percent_translate_v" -lt "90" ]] ; then
 
         if [[ "${language_user}" = "en" ]] ; then
-            if ! echo "$pref_user_cached_v" | grep -qsiE "(Thanatermesis)" ; then
+            if ! echo "$pref_user_cached_v" | grep -qsiE "^(Thanatermesis)$" ; then
 
                 $guitool --error --text="$( eval_gettext "Sorry! Translations require at least 90% of their original messages verified. We do this to ensure the good quality of the messages and the strict use of our special technique. You can found more details in our Forums." )"
                 # do not translate this one
                 return 0
             fi
         else
-            #$guitool --warning --text="$( eval_gettext "In this translation less than 90% of the original messages have been proofread. If you have good English skills, please proofread them. We suggest to translate another application for now. Otherwise you risk doing the translation twice, since the proofreading may result in different message texts." )"
             $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 90% of its original messages verified, we need to wait for a better proofreading first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
 
             if $guitool --question --text="$( eval_gettext "If you have good English skills, and you also know natively another common language like French or Spanish. You can help improving the English sentences using our mystical reverse-engineering method. Do you want to know more about it?" )" ; then
@@ -402,7 +406,7 @@ translate_elive(){
 
     # for the translator tools
     _tr_package_version_v="$( LC_ALL=C grep "Project-Id-Version: " "${_tr_app_d}/default.pot" | sed -e 's|^.*Version: ||g' -e 's|\\n.*$||g' | head -1 | LC_ALL=C grep "[[:digit:]]" )"
-    : ${_tr_app_d:="1.0"}
+    : ${_tr_package_version_v:="1.0"}
 
     sed -i "/\"Project-Id-Version: /s|^.*Version:.*$|\"Project-Id-Version: ${_tr_package_version_v}\\\n\"|g" "$_tr_app_d/${language_user}.po"
 
@@ -421,7 +425,7 @@ translate_elive(){
     local message_saving_translation_submit
     message_saving_translation_submit="$( printf "$( eval_gettext "To send your translations made to Elive. Save your editing and close the Poedit application when you have finished. " )" "" )"
 
-    ( sleep 30 ; source /usr/lib/elive-tools/functions ; el_notify normal logo-elive "Eltrans Saving" "${message_saving_translation_submit}" ) &
+    ( sleep 20 ; source /usr/lib/elive-tools/functions ; el_notify normal logo-elive "Eltrans Saving" "${message_saving_translation_submit}" ) &
     poeditor "$_tr_app_d/${language_user}.po"
 
     #
@@ -439,20 +443,24 @@ translate_elive(){
 
     rm -f "$_tr_app_d/${language_user}.mo"
 
-    translation_elive_install "$( basename $_tr_app_d )" "$_tr_app_d/${language_user}.po" "$language_user"
-    commit_changes_elive "$( basename $_tr_app_d )" "${language_user}.po" "$_tr_app_d" "${language_user}"
+    translation_elive_install "${tr_domain_v}"  "${language_user}.po" "$_tr_app_d" "${language_user}"
+    commit_changes_elive "${tr_domain_v}"  "${language_user}.po" "$_tr_app_d" "${language_user}"
 }
 ############################################################################
 translation_elive_install(){
     el_debug
 
-    local _tr_app _tr_po _tr_lang svndiff
-    _tr_app="$1"
-    _tr_po="$2"
-    _tr_lang="$3"
+    local _tr_domain_v _tr_po_f _tr_lang svndiff
+    _tr_domain_v="$1"
+    _tr_po_f="$2"
+    _tr_app_d="$3"
+    _tr_lang="$4"
 
-    el_check_variables "_tr_lang|_tr_po|_tr_app"
-    el_check_files "${_tr_po}"
+    cd "${_tr_app_d}"
+
+    if ! el_check_variables "_tr_lang|_tr_po_f|_tr_domain_v" || ! el_check_files "${_tr_app_d}/${_tr_po_f}" ; then
+        exit 1
+    fi
 
     svndiff="$( svn diff --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" || true )"
 
@@ -463,10 +471,10 @@ translation_elive_install(){
                 gksu "mkdir -p /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES"
             fi
 
-            #msgfmt ${_tr_po} -o /tmp/.$(basename $0)-${USER}-${_tr_app}.mo
+            #msgfmt "${_tr_app_d}/${_tr_po_f}" -o "/tmp/.$(basename $0)-${USER}-${_tr_domain_v}.mo"
 
 
-            if gksu "msgfmt ${_tr_po} -o /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_app}.mo" ; then
+            if gksu "msgfmt \"${_tr_app_d}/${_tr_po_f}\" -o \"/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_domain_v}.mo\"" ; then
                 is_translation_installed=1
                 $guitool --info --text="$( eval_gettext "Translation installed in your system. Make sure to close the translated application and run it again to verify the modified messages." )"
             else
@@ -489,22 +497,15 @@ config_get(){
 commit_changes_elive(){
     el_debug
 
-    local _tr_app _tr_po _tr_lang _tr_app_d _tr_po_f
-    _tr_app="$1"
+    local _tr_domain_v _tr_lang _tr_app_d _tr_po_f
+    _tr_domain_v="$1"
     _tr_po_f="$2"
     _tr_app_d="$3"
     _tr_lang="$4"
 
-    el_check_variables "_tr_po_f"
-    el_check_files "$_tr_po_f"
-
-    # TODO: if you fix the fucking gksu issue then you can enable this back
-    #if ! ((is_translation_installed)) ; then
-        #local message_install_required
-        #message_install_required="$( printf "$( eval_gettext "Suggestion: Please install first your translation in your system before to send it, so you can verify that works correctly." )" )"
-
-        #$guitool --info --text="$message_install_required"
-    #fi
+    if ! el_check_variables "_tr_lang|_tr_po_f|_tr_domain_v" || ! el_check_files "${_tr_app_d}/${_tr_po_f}" ; then
+        exit 1
+    fi
 
     if ! $guitool --question --title="Send translations" --text="$( eval_gettext "Sending your translation to Elive is automated and every user will be benefited of it.\n\nIf you don't have an account yet, check our forums for more information\n\nYou should not wait too long to send your translation. Someone else may work on the same messages, and the resulting versions may not be compatible. When you have finished translating some messages, send them right away. Only translated messages willl be included in the application.\n\nPlease only send grammatically correct messages. If necessary, change the English message texts.\n\nSend translations now?" )" ; then
         return 0
@@ -568,7 +569,7 @@ commit_changes_elive(){
         cat > "${temp_script}" << EOF
 #!/bin/bash
 
-if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans commit:  |${_tr_app}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}" "${_tr_po_f}"  ; then
+if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans commit:  |${_tr_domain_v}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}" "${_tr_po_f}"  ; then
 
     $guitool --info --text="$( eval_gettext "Translation sent sucessfully. Thank you for your collaboration. It will be examined soon and included directly in Elive's next version. You can see your translation on http://dev.elivecd.org/timeline, where you can also look at other translations made by someone else. You can also see there who made the translation, look at the differences or recover an older translation if necessary." )" 1>/dev/null 2>&1
 
@@ -593,14 +594,8 @@ EOF
         fi
     fi
 
-    # proofreaders
-    #if [[ "$language_user" = "en" ]] ; then
-        ## FIXME: this is a temporal message hack
-        #$guitool --warning --text="$( eval_gettext "Please understand this: When you proofread the english, these improved messages are directly integrated in the source code, which changes these sentences in all the other languages too, by other side, if in the future you see a conflict status in your translated files and you don't want to erase them you can try to use meld between the directories." )"
-    #fi
-
     # last message
-    if $guitool --question --text="$( eval_gettext "You can review it and other ones at:" ) http://dev.elivecd.org/timeline $( eval_gettext "View the timelines in the web browser now?" )" ; then
+    if $guitool --question --text="$( eval_gettext "You can review your translation and the other ones at:" ) http://dev.elivecd.org/timeline $( eval_gettext "View the history of translations in the web browser now?" )" ; then
         web-launcher "https://dev.elivecd.org/timeline" &
     fi
 }
@@ -608,12 +603,17 @@ EOF
 add_translations_dir_e17(){
     el_debug
 
-    el_check_variables "translating_d|translating_e17_worked_d"
+    if ! el_check_variables "translating_d|translating_e17_worked_d" ; then
+        exit 1
+    fi
+
+    ## disabled
+    $guitool --error --text="Disabled feature, contact Thanatermesis to update it if needed"
+    exit 1
 
     mkdir -p "${translating_d}"
     cd "$translating_d"
 
-    rm -rf e
     rm -rf "$translating_e17_d" 2>/dev/null
 
     $term -e bash -c "echo 'Download Enlightenment 17 sources...' ; svn co http://svn.enlightenment.org/svn/e/trunk/e || sleep 6"
@@ -1033,6 +1033,7 @@ translate_new(){
                 tr_version_v="$( LC_ALL=C awk -v FS=":::" '{if ($1 == "version_min") print $2 }' "${item_v}/settings" | tail -1 )"
                 tr_description_v="$( LC_ALL=C awk -v FS=":::" '{if ($1 == "description") print $2 }' "${item_v}/settings" | tail -1 )"
                 tr_package_name_v="$( LC_ALL=C awk -v FS=":::" '{if ($1 == "package_name") print $2 }' "${item_v}/settings" | tail -1 )"
+                tr_domain_v="$( LC_ALL=C awk -v FS=":::" '{if ($1 == "domain") print $2 }' "${item_v}/settings" | tail -1 )"
 
 
                 # checks
