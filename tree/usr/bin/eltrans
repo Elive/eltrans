@@ -192,7 +192,7 @@ instructions_show(){
 - Sometimes the sentences include strange codes like '%s', it's important to NOT alter these elements since they are part of the source code of the application, doing it will make the application work incorrectly
 - Use the listed hotkeys as much as possible, like Ctrl + Enter to save the sentence and going to the next sentence.
 - Save the file and send your translations if they are correct, every 30 minutes is a suggested number to avoid conflicts with other translators.
-- 'Needs Work' sentences (named fuzzy, may be shown in orange) are sometimes pre-translations or simply not verified by humans, they just need a revision to mark it as correct or a small modification to make them understandable or correctly spoken. When they are revised press Ctrl + Enter to mark it as valid and going to the next one.
+- 'Needs Work' sentences (named fuzzy, may be shown in orange) are sometimes pre-translations or simply not validated by humans, they just need a revision to mark it as correct or a small modification to make them understandable or correctly spoken. When they are revised press Ctrl + Enter to mark it as valid and going to the next one.
 - Use the Clean feature if you want to delete your state and download unmodified by you, and updated translations.
 
 Conflicts with other Translators
@@ -361,12 +361,12 @@ translate_elive(){
         if [[ "${language_user}" = "en" ]] ; then
             if ! echo "$pref_user_cached_v" | grep -qsiE "^(Thanatermesis)$" ; then
 
-                $guitool --error --text="$( eval_gettext "Sorry! Translations require at least 90% of their original messages to be verified. We do this to ensure the good quality of the messages and to follow the strict use of our special technique. You can find more details in our Forums." )"
+                $guitool --error --text="$( eval_gettext "Sorry! Translations require at least 90% of their original messages to be validated. We do this to ensure the good quality of the messages and to follow the strict use of our special technique. You can find more details in our Forums." )"
                 # do not translate this one
                 return 0
             fi
         else
-            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 90% of its original messages verified, we need to wait for them to be validated first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
+            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 90% of its original messages validated, we need to wait for them to be validated first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
 
             if $guitool --question --text="$( eval_gettext "If you have good English skills, and you also know another common language like French or Spanish natively. You can help improve the English sentences using our special reverse-engineering method. Do you want to know more about it?" )" ; then
                 web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-proofread-the-original-messages-of-elive/1055" &
@@ -1094,7 +1094,7 @@ translate_new(){
                     # Normal description set for different percentages
                     if [[ "$count_percent_proofread_v" -lt 90 ]] ; then
                         if [[ "${item_lang_v}" = "en" ]] ; then
-                            tr_completed_v="Requires verifications (${count_percent_proofread_v}% done)"
+                            tr_completed_v="Requires validations (${count_percent_proofread_v}% done)"
                         else
                             tr_completed_v="Needs English proofreading (${count_percent_proofread_v}% done)"
                         fi
@@ -1106,7 +1106,7 @@ translate_new(){
                             item_order_v=6
                         else
                             if [[ "${item_lang_v}" = "en" ]] ; then
-                                tr_completed_v="${count_percent_translate_v}% Verified, ${count_percent_fuzzy_v}% Proofread"
+                                tr_completed_v="${count_percent_translate_v}% Validated, ${count_percent_fuzzy_v}% Proofread"
                             else
                                 tr_completed_v="${count_percent_translate_v}% Translated (${item_lang_v}), ${count_percent_fuzzy_v}% Proofread"
                             fi
