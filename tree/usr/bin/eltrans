@@ -192,7 +192,7 @@ instructions_show(){
 - Sometimes the sentences include strange codes like '%s', it's important to NOT alter these elements since they are part of the source code of the application, doing it will make the application work incorrectly
 - Use the listed hotkeys as much as possible, like Ctrl + Enter to save the sentence and going to the next sentence.
 - Save the file and send your translations if they are correct, every 30 minutes is a suggested number to avoid conflicts with other translators.
-- 'Needs Work' sentences (named fuzzy, may be shown in orange) are sometimes pre-translations or simply not validated by humans, they just need a revision to mark it as correct or a small modification to make them understandable or correctly spoken. When they are revised press Ctrl + Enter to mark it as valid and going to the next one.
+- 'Needs Work' sentences (named fuzzy, may be shown in orange) are sometimes pre-translations or simply not approved by humans, they just need a revision to mark it as correct or a small modification to make them understandable or correctly spoken. When they are revised press Ctrl + Enter to mark it as valid and going to the next one.
 - Use the Clean feature if you want to delete your state and download unmodified by you, and updated translations.
 
 Conflicts with other Translators
@@ -366,7 +366,7 @@ translate_elive(){
                 return 0
             fi
         else
-            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 90% of its original messages validated, we need to wait for them to be approved first, otherwise, our translating work will be lost later. In the meantime, you can select another application to translate." )"
+            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 90% of its original messages approved, we need to wait for them to be approved first, otherwise, our translating work will be lost later. In the meantime, you can select another application to translate." )"
 
             if $guitool --question --text="$( eval_gettext "If you have good English skills, and you also know another common language like French or Spanish natively. You can help improve the English sentences using our special reverse-engineering method. Do you want to know more about it?" )" ; then
                 web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-proofread-the-original-messages-of-elive/1055" &
@@ -560,7 +560,7 @@ commit_changes_elive(){
     done
 
     local message_error_sending_translations
-    message_error_sending_translations="$( printf "$( eval_gettext "Error sending your translation. If you are using a Wrong Username or Password please remove the file '%s'. You can also try the 'Clean' option. But if you have important work saved, first do a backup of your directory '%s', and after to have made Eltrans work again, use the tool meld between your backup and that directory to merge the changes." )" "$preferences_f" "$translating_elive_d" )"
+    message_error_sending_translations="$( printf "$( eval_gettext "Error sending your translation. If you are using a Wrong Username or Password please remove the file '%s'. You can also try the 'Clean' option. But if you have important work saved, first do a backup of your directory '%s', and after to have made Eltrans work again, use the tool '%s' between your backup and that directory to merge the changes." )" "$preferences_f" "$translating_elive_d" "meld" )"
 
     if ((is_blklist)) ; then
         $term -e bash -c "sleep 2"
@@ -572,7 +572,7 @@ commit_changes_elive(){
 
 if [[ "${_tr_lang}" = "en" ]] ; then
     if [[ "${pref_user_cached_v}" = "Thanatermesis" ]] ; then
-        message_pre="Eltrans VALIDATIONS"
+        message_pre="Eltrans APPROVED MESSAGES"
     else
         message_pre="Eltrans Proofreading"
     fi
@@ -888,7 +888,7 @@ clean_elive_dir(){
         "Revert")
 
             local translated_message
-            translated_message="$( printf "$( eval_gettext "If you have made a wrong translation and sent it to Elive, correct your mistake as follows: First of all, go to http://dev.elivecd.org,  log in and click on 'timeline' to see the latest changes. If you click on the revision number, you can see the actual changes made (visually). If they are incorrect, look for a previous (correct) revision. Click on 'Previous Changeset'. Now you can see the previous changes. If this one is correct, remember the revision number (because it is the one you need to use afterwards). Click on the single file link (in the left part, in the details of the changeset) or look for it in the 'Browse source' tab. When you are on this page, make sure that it is the correct revision number. Go to the bottom of the page and click on the link 'Download in Original Format'. When the download is finished, replace your local file (normally in %s) with this one and from this directory, run the command:" ) " "$translating_elive_d" )"
+            translated_message="$( printf "$( eval_gettext "If you have made a wrong translation and sent it to Elive, correct your mistake as follows: First of all, go to '%s', log in and click on '%s' to see the latest changes. If you click on the revision number, you can see the actual changes made (visually). If they are incorrect, look for a previous (correct) revision. Click on '%s'. Now you can see the previous changes. If this one is correct, remember the revision number (because it is the one you need to use afterwards). Click on the single file link (in the left part, in the details of the %s) or look for it in the '%s' tab. When you are on this page, make sure that it is the correct revision number. Go to the bottom of the page and click on the link '%s'. When the download is finished, replace your local file (normally in %s) with this one and from this directory, run the command:" ) " "https://dev.elivecd.org/" "timeline" "Previous Changeset" "changeset" "Browse source" "Download in Original Format" "$translating_elive_d" )"
 
             $guitool --info --text="${translated_message} svn commit -m 'reverting to old version'."
 
@@ -1094,7 +1094,7 @@ translate_new(){
                     # Normal description set for different percentages
                     if [[ "$count_percent_proofread_v" -lt 90 ]] ; then
                         if [[ "${item_lang_v}" = "en" ]] ; then
-                            tr_completed_v="Requires validations (${count_percent_proofread_v}% done)"
+                            tr_completed_v="Requires approvals (${count_percent_proofread_v}% done)"
                         else
                             tr_completed_v="Needs English proofreading (${count_percent_proofread_v}% done)"
                         fi
@@ -1106,7 +1106,7 @@ translate_new(){
                             item_order_v=6
                         else
                             if [[ "${item_lang_v}" = "en" ]] ; then
-                                tr_completed_v="${count_percent_translate_v}% Validated, ${count_percent_fuzzy_v}% Proofread"
+                                tr_completed_v="${count_percent_translate_v}% Approved, ${count_percent_fuzzy_v}% Proofread"
                             else
                                 tr_completed_v="${count_percent_translate_v}% Translated (${item_lang_v}), ${count_percent_fuzzy_v}% Proofread"
                             fi
