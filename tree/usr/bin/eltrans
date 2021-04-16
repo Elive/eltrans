@@ -38,9 +38,9 @@ ui_answer_check(){
 
     if [[ "$ui_user_answered" = "cancel" ]] ; then
         if [[ -n "$EROOT" ]] ; then
-            el_notify normal znes "Eltrans" "$( eval_gettext "Thanks for collaborating with the Elive translations." )"
+            el_notify normal znes "Eltrans" "$( eval_gettext "Thanks for collaborating with Elive translations." )"
         else
-            el_notify normal "/usr/share/git-watcher/images/ttc.gif" "Eltrans" "$( eval_gettext "Thanks for collaborating with the Elive translations." )"
+            el_notify normal "/usr/share/git-watcher/images/ttc.gif" "Eltrans" "$( eval_gettext "Thanks for collaborating with Elive translations." )"
         fi
         exit 0
     fi
@@ -264,7 +264,7 @@ preferences_edit(){
 ############################################################################
 select_language(){
     local ui_user_answered
-    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select language" )" --text="$translated_message" || echo cancel )"
+    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select the language to which translate" )" --text="$translated_message" || echo cancel )"
 
     ui_answer_check
     language_user="$ui_user_answered"
@@ -361,14 +361,14 @@ translate_elive(){
         if [[ "${language_user}" = "en" ]] ; then
             if ! echo "$pref_user_cached_v" | grep -qsiE "^(Thanatermesis)$" ; then
 
-                $guitool --error --text="$( eval_gettext "Sorry! Translations require at least 90% of their original messages verified. We do this to ensure the good quality of the messages and the strict use of our special technique. You can found more details in our Forums." )"
+                $guitool --error --text="$( eval_gettext "Sorry! Translations require at least 90% of their original messages to be verified. We do this to ensure the good quality of the messages and to follow the strict use of our special technique. You can find more details in our Forums." )"
                 # do not translate this one
                 return 0
             fi
         else
-            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 90% of its original messages verified, we need to wait for a better proofreading first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
+            $guitool --warning --text="$( eval_gettext "Sorry! This translation has less than the 90% of its original messages verified, we need to wait for them to be validated first, otherwise our translating work will be lost later. In the meantime, you can select another application to translate." )"
 
-            if $guitool --question --text="$( eval_gettext "If you have good English skills, and you also know natively another common language like French or Spanish. You can help improving the English sentences using our mystical reverse-engineering method. Do you want to know more about it?" )" ; then
+            if $guitool --question --text="$( eval_gettext "If you have good English skills, and you also know another common language like French or Spanish natively. You can help improve the English sentences using our special reverse-engineering method. Do you want to know more about it?" )" ; then
                 web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-proofread-the-original-messages-of-elive/1055" &
             fi
 
@@ -386,7 +386,7 @@ translate_elive(){
     if [[ -n "$recent_changes_diffed" ]] ; then
         # only me? ignore...
         if [[ "$recent_changes_authors" != "${pref_user_cached_v}" ]] ; then
-            $guitool --warning --text="$( eval_gettext "The file that you want to translate, has been modified in the last 3 days by other collaborators. You should not worry about this message and is only a notification to know about that other translator worked recently on the same file in order to avoid possible conflicts between versions translated.\n\nThese translators was:" ) ${recent_changes_authors// /, }"
+            $guitool --warning --text="$( eval_gettext "The file that you want to translate has been modified in the last 3 days by other collaborators. You should not worry about this message, this is only a notification to know that other translators worked recently on the same file to avoid possible conflicts between versions translated.\n\nThese translators was:" ) ${recent_changes_authors// /, }"
 
             if ! $guitool --question --text="$( eval_gettext "Do you want to continue editing this translation? Otherwise, you can select another application to translate" )" ; then
                 return 0
@@ -424,7 +424,7 @@ translate_elive(){
 
     # run poedit
     local message_saving_translation_submit
-    message_saving_translation_submit="$( printf "$( eval_gettext "To send your translations made to Elive. Save your editing and close the Poedit application when you have finished. " )" "" )"
+    message_saving_translation_submit="$( printf "$( eval_gettext "To send your translations made to Elive. Save your edits and close the Poedit application when you have finished." )" "" )"
 
     ( sleep 20 ; source /usr/lib/elive-tools/functions ; el_notify normal logo-elive "Eltrans Saving" "${message_saving_translation_submit}" ) &
     poeditor "$_tr_app_d/${language_user}.po"
@@ -466,7 +466,7 @@ translation_elive_install(){
     svndiff="$( svn diff --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" || true )"
 
     if [[ -n "$svndiff" ]] ; then
-        if $guitool --question --text="$( eval_gettext "Install and use your translation in your system now? It is suggested to test yourself the made translations before to send them to Elive in order to verify that everything looks correct and consistent." )" ; then
+        if $guitool --question --text="$( eval_gettext "Install and use the translation in your system now? It is suggested to test the made translations before sending them to Elive to verify that the application reads correctly and is consistent." )" ; then
 
             if ! [[ -d "/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES" ]] ; then
                 gksu "mkdir -p /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES"
@@ -477,7 +477,7 @@ translation_elive_install(){
 
             if gksu "msgfmt \"${_tr_app_d}/${_tr_po_f}\" -o \"/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_domain_v}.mo\"" ; then
                 is_translation_installed=1
-                $guitool --info --text="$( eval_gettext "Translation installed in your system. Make sure to close the translated application and run it again to verify the modified messages." )"
+                $guitool --info --text="$( eval_gettext "The translation has been installed in your system. Make sure to close that translated application and run it again to see and verify the new modified messages." )"
             else
                 $guitool --error
             fi
@@ -508,7 +508,7 @@ commit_changes_elive(){
         exit 1
     fi
 
-    if ! $guitool --question --title="Send translations" --text="$( eval_gettext "Sending your translation to Elive is automated and every user will be benefited of it.\n\nIf you don't have an account yet, check our forums for more information\n\nYou should not wait too long to send your translation. Someone else may work on the same messages, and the resulting versions may not be compatible. When you have finished translating some messages, send them right away. Only translated messages willl be included in the application.\n\nPlease only send grammatically correct messages. If necessary, change the English message texts.\n\nSend translations now?" )" ; then
+    if ! $guitool --question --title="Send translations" --text="$( eval_gettext "Sending your translation to Elive is automated and every user will benefit from it.\n\nIf you don't have an account yet, check our forums for more information\n\nYou should not wait too long to send your translation. Someone else may work on the same messages, and the resulting versions may not be compatible. So we suggest sending them every 30 minutes.\n\nPlease only send grammatically correct messages. If they are not correctly structured we suggest changing the original English sentences first.\n\nSend translations now?" )" ; then
         return 0
     fi
 
@@ -531,12 +531,12 @@ commit_changes_elive(){
     # only send translations in utf-8 mode
     if ! grep -iq "Content-Type:.*charset=UTF-8" "$_tr_po_f" && [[ "$language_user" != "en" ]] ; then
         echo "$( eval_gettext "Translated file does not appear to be in UTF-8 mode." )" >> "${logs_err}"
-        echo "$( eval_gettext "The charset must be UTF-8." )" >> "${logs_err}"
-        echo "$( eval_gettext "Try to change your editor setting to UTF-8." )" >> "${logs_err}"
+        echo "$( eval_gettext "The Charset must be UTF-8." )" >> "${logs_err}"
+        echo "$( eval_gettext "Try to change your operating system language to use UTF-8. And also your editor if needed." )" >> "${logs_err}"
     fi
 
     if [[ -s "${logs_err}" ]]; then
-        $guitool --info --text="$( eval_gettext "There are warnings or errors in your translation. Please read them carefully and try to fix the problem manually. there is a window with the details of these errors. The messages include the exact line number of the problem in the first field. Enable line-number- visualization in your editor if it is not enabled." )"
+        $guitool --info --text="$( eval_gettext "There are warnings or errors in your translation. Please read them carefully and try to fix the problem manually. There is a window with the details of these errors. The messages include the exact line number of the problems found." )"
 
         cat "${logs_err}" | $guitool --text-info --width=650 --height=400 &
 
@@ -572,7 +572,7 @@ commit_changes_elive(){
 
 if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans commit:  |${_tr_domain_v}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}" "${_tr_po_f}"  ; then
 
-    $guitool --info --text="$( eval_gettext "Translation sent sucessfully. Thank you for your collaboration. It will be examined soon and included directly in Elive's next version. You can see your translation on http://dev.elivecd.org/timeline, where you can also look at other translations made by someone else. You can also see there who made the translation, look at the differences or recover an older translation if necessary." )" 1>/dev/null 2>&1
+    $guitool --info --text="$( eval_gettext "Translation sent successfully. Thank you for your collaboration. It will be examined soon to be included in Elive. You can see your translation on http://dev.elivecd.org/timeline, where you can also see other work made by the other collaborators. You can also see there who made a specific translation, look at the differences or recover an older translation if necessary." )" 1>/dev/null 2>&1
 
 else
     $guitool --error --text="$message_error_sending_translations" 1>/dev/null 2>&1
@@ -596,7 +596,7 @@ EOF
     fi
 
     # last message
-    if $guitool --question --text="$( eval_gettext "You can review your translation and the other ones at:" ) http://dev.elivecd.org/timeline $( eval_gettext "View the history of translations in the web browser now?" )" ; then
+    if $guitool --question --text="$( eval_gettext "You can review your sent translation and the ones from other collaborators at:" ) http://dev.elivecd.org/timeline $( eval_gettext "View the history of translations in your web browser?" )" ; then
         web-launcher "https://dev.elivecd.org/timeline" &
     fi
 }
@@ -647,7 +647,7 @@ EOF
     rm -f "${temp_script}"
 
     if [[ -s "${logs_err}" ]]; then
-        $guitool --error --text="$( eval_gettext "We cannot download the translations. If you don't have a translator account, you need to request it to Thanatermesis, contact him from the Elive website. If your account is valid, maybe there's issues with the server and you should try again later." )"
+        $guitool --error --text="$( eval_gettext "We cannot download the translations. If you don't have a translator account, you need to request it to Thanatermesis, contact him from the Elive website. If your account is valid, maybe there are issues with the server and you should try again later." )"
         cat "${logs_err}" | $guitool --text-info --width=650 --height=400
         rm -f "${logs_err}"
 
@@ -737,7 +737,7 @@ translate_e17_new_language(){
     cd "${translating_e17_d}"
 
 
-    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select language" )" --text="$translated_message" || echo cancel )"
+    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select the language to which translate" )" --text="$translated_message" || echo cancel )"
 
     ui_answer_check
     language_user="$ui_user_answered"
@@ -856,7 +856,7 @@ clean_elive_dir(){
     el_debug
      local ui_user_answered
 
-     ui_user_answered="$( $guitool --list --width=640 --height=300 --text="$( eval_gettext "Select this option to remove your translations directory or to revert to a previous commit (Important: If you erroneously have sent a wrong translation, you have to select this option)" )" --column="$( eval_gettext "Option" )" --column="$( eval_gettext "Description" )" "Purge" "$( eval_gettext "This option removes the entire directory with your translations." )" "Account" "$( eval_gettext "Resets your username and password configurations" )" "Revert" "$( eval_gettext "This option lets you undo a wrong translation, which you sent by mistake." )" || echo cancel )"
+     ui_user_answered="$( $guitool --list --width=640 --height=300 --text="$( eval_gettext "Select this option to remove your translations directory or to revert to a previous state of the revisions (Suggestion: If you erroneously have sent wrong translations, you have to select this option)" )" --column="$( eval_gettext "Option" )" --column="$( eval_gettext "Description" )" "Purge" "$( eval_gettext "This option removes the entire directory with your translations." )" "Account" "$( eval_gettext "Reset your username and password configurations" )" "Revert" "$( eval_gettext "This option lets you undo a wrong translation that you sent by mistake." )" || echo cancel )"
     ui_answer_check
 
     case "$ui_user_answered" in
@@ -867,7 +867,7 @@ clean_elive_dir(){
         "Purge")
 
             local translated_message
-            translated_message="$( printf "$( eval_gettext "You are going to remove your translations directory (not the Enlightenment 17 translations). This will remove all the translations that you have not sent or backed up. If you like, do a backup of your '%s' directory first, and after that, continue." )" "$translating_elive_d" )"
+            translated_message="$( printf "$( eval_gettext "You are going to remove your temporal directory of translations. This will remove all the translations that you have not sent or backed up. If you like, do a backup of your '%s' directory first, and after that, continue." )" "$translating_elive_d" )"
 
             if $guitool --question --text="Going to delete the directory '$translating_elive_d'. Continue?" ; then
                 rm -rf "$translating_elive_d"
@@ -878,7 +878,7 @@ clean_elive_dir(){
         "Revert")
 
             local translated_message
-            translated_message="$( printf "$( eval_gettext "If you have made a wrong translation and sent it to Elive, correct your mistake as follows: First of all, go to http://dev.elivecd.org,  log in and click on 'timeline' to see the latest changes. If you click on the commit number, you can see the actual changes made (visually). If they are incorrect, look for a previous (correct) commit. Click on 'Previous Changeset'. Now you can see the previous changes. If this one is correct, remember the revision number (because it is the one you need to use afterwards). Click on the single file link (in the left part, in the details of the changeset) or look for it in the 'Browse source' tab. When you are on this page, make sure that it is the correct revision number. Go to the bottom of the page and click on the link 'Download in Original Format'. When the download is finished, replace your local file (normally in %s) with this one and from this directory, run the command: svn commit -m 'reverting to old version'." )" "$translating_elive_d" )"
+            translated_message="$( printf "$( eval_gettext "If you have made a wrong translation and sent it to Elive, correct your mistake as follows: First of all, go to http://dev.elivecd.org,  log in and click on 'timeline' to see the latest changes. If you click on the revision number, you can see the actual changes made (visually). If they are incorrect, look for a previous (correct) revision. Click on 'Previous Changeset'. Now you can see the previous changes. If this one is correct, remember the revision number (because it is the one you need to use afterwards). Click on the single file link (in the left part, in the details of the changeset) or look for it in the 'Browse source' tab. When you are on this page, make sure that it is the correct revision number. Go to the bottom of the page and click on the link 'Download in Original Format'. When the download is finished, replace your local file (normally in %s) with this one and from this directory, run the command: svn commit -m 'reverting to old version'." )" "$translating_elive_d" )"
 
             $guitool --info --text="$translated_message"
 
@@ -929,18 +929,18 @@ count_messages_completed(){
 
                     # warn the user that a new translation is going to be created
                     if echo "$language_user" | grep "_" ; then
-                        $guitool --warning --text="$( eval_gettext "Warning: This is a new language translation which didn't existed previously, a sublanguage or dialect should be only used when the main language is not compatible with the messages, like when needs using different sentences or meanings, otherwise is better to simply use the main language." )"
+                        $guitool --warning --text="$( eval_gettext "Warning: This is a new language translation that didn't exist previously, note that a sublanguage or dialect should only be used when the main language is not compatible with the messages, like when needs to use different sentences or meanings. It's always better using the main language code, otherwise, fewer people will benefit from your translation." )"
                     else
-                        $guitool --warning --text="$( eval_gettext "This is a new language which didn't existed previously for this translation, so we are going to create a new template for this type of language." )"
+                        $guitool --warning --text="$( eval_gettext "This is a new language that didn't exist previously for this translation, so I will create a new template of translations for it." )"
                     fi
 
-                    if $guitool --question --text="$( eval_gettext "Please confirm first. Is the language identifier that you inserted the correct for your translations?" ) '$language_user'" ; then
+                    if $guitool --question --text="$( eval_gettext "Please confirm first. Is the language identifier that you inserted the correct one for your translations?" ) '$language_user'" ; then
                         cp -f "$( dirname "$_tr_po" )/default.pot" "$_tr_po"
                         el_debug "adding default english translation from 'default.pot':"
                         svn add "$_tr_po"
                         is_new_language_add_wanted=1
                     else
-                        $guitool --error --text="$( eval_gettext "Please run again Eltrans selecting a different language to use." )"
+                        $guitool --error --text="$( eval_gettext "Run Eltrans again and select a different language to use." )"
                         exit 1
                     fi
 
@@ -1040,7 +1040,7 @@ translate_new(){
                 # checks
                 if [[ "${tr_version_v}" -gt "$eltrans_version_v" ]] ; then
                     if ! ((is_showed_message_upgrade)) ; then
-                        $guitool --error --text="$( eval_gettext "Some translations require a newer version of eltrans. Please update eltrans." )" &
+                        $guitool --error --text="$( eval_gettext "Some translations require a newer version of Eltrans. Please update Eltrans first." )" &
                         is_showed_message_upgrade=1
                     fi
                     continue
@@ -1128,14 +1128,14 @@ translate_new(){
 
         echo -e "Cleanups" >> "${tempfile}_order_8_"
         echo -e "-" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Purge, undo or remove" )" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Management of your conflicting translations." )" >> "${tempfile}_order_8_"
+        echo -e "$( eval_gettext "Clean, undo or remove" )" >> "${tempfile}_order_8_"
+        echo -e "$( eval_gettext "Manage your conflicting translations." )" >> "${tempfile}_order_8_"
 
 
         kill "$pid_guitool_counting" 1>/dev/null 2>&1 || true
 
 
-        ui_user_answered="$( cat ${tempfile}_order_* | $guitool --list --width=840 --height=540 --title="$( eval_gettext "Select an element." )" --text="$( eval_gettext "Select an element that you want to translate or to update in an already existing translation.\nThe first elements in the list are the most needed ones, they are sorted like this on purpose." )" --column="$( eval_gettext "Element" )" --column="$( eval_gettext "Phrases" )" --column="$( eval_gettext "Completion" )" --column="$( eval_gettext "Description" )" || echo cancel )"
+        ui_user_answered="$( cat ${tempfile}_order_* | $guitool --list --width=840 --height=540 --title="$( eval_gettext "Select an element." )" --text="$( eval_gettext "Select the element you want to translate or improve.\nThe first ones listed are the most needed ones, they are sorted like this on purpose." )" --column="$( eval_gettext "Element" )" --column="$( eval_gettext "Phrases" )" --column="$( eval_gettext "Accomplished" )" --column="$( eval_gettext "Description" )" || echo cancel )"
         ui_answer_check
 
         rm -f "$tempfile" ${tempfile}_order_* || true
@@ -1198,7 +1198,7 @@ main(){
 
     # check internet
     if ! el_verify_internet ; then
-        $guitool --error --text="$( eval_gettext "You need an internet connection to translate and to be able to send your translations." )"
+        $guitool --error --text="$( eval_gettext "You need to have an internet connection to translate and to be able to send your translations." )"
     fi
 
     # get account
@@ -1208,7 +1208,7 @@ main(){
 
     if ! [[ -n "$pref_pass_cached_v" ]] ; then
         #$guitool --info --text="$( eval_gettext "You need an eltrans account in order to make translations, please create it first" )"
-        $guitool --warning --text="$( eval_gettext "To help translating Elive, you need to ask for an account. At the moment you can simply send an email to Thanatermesis to request it. Include in your email the language to which you want to translate, and the username and password you wish to use." )"
+        $guitool --warning --text="$( eval_gettext "To help translate Elive, you need to ask for an account. You can send an email to Thanatermesis to request it. Include in your email the language to which you want to translate, and the username and password you wish to use." )"
 
         #/etc/alternatives/x-www-browser "https://www.elivecd.org/collaborate" &
         #/etc/alternatives/x-www-browser "https://www.elivecd.org/contact" &
