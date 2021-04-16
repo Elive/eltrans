@@ -570,7 +570,17 @@ commit_changes_elive(){
         cat > "${temp_script}" << EOF
 #!/bin/bash
 
-if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "Eltrans commit:  |${_tr_domain_v}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}" "${_tr_po_f}"  ; then
+if [[ "${_tr_lang}" = "en" ]] ; then
+    if [[ "${pref_user_cached_v}" = "Thanatermesis" ]] ; then
+        message_pre="Eltrans VALIDATIONS"
+    else
+        message_pre="Eltrans Proofreading"
+    fi
+else
+    message_pre="Eltrans Translation"
+fi
+
+if svn commit --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -m "\${message_pre}:  |${_tr_domain_v}|  in  |${_tr_lang}|  by '$( awk -v var="$pref_user_cached_v" "BEGIN {print tolower(var)}" )'" 2>"${logs_err}" "${_tr_po_f}"  ; then
 
     $guitool --info --text="$( eval_gettext "Translation sent successfully. Thank you for your collaboration. It will be examined soon to be included in Elive. You can see your translation on http://dev.elivecd.org/timeline, where you can also see other work made by the other collaborators. You can also see there who made a specific translation, look at the differences or recover an older translation if necessary." )" 1>/dev/null 2>&1
 
