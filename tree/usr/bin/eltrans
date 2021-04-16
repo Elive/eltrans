@@ -314,8 +314,9 @@ translate_elive(){
         exit 0
     fi
 
-    if ! el_check_variables "$tr_domain_v" ; then
-        $guitool --warning --text="$( printf "Domain value missing for the %s translation. Select another one." "${_tr_app_d}" )"
+    if ! el_check_variables "tr_domain_v" ; then
+        $guitool --warning --text="$( printf "Domain value missing for the %s translation. Select another item to translate one." "${_tr_app_d}" )"
+        el_error "domain value missing for $_tr_app_d"
         translate_new
         exit 0
     fi
