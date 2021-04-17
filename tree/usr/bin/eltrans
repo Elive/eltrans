@@ -1021,7 +1021,7 @@ translate_new(){
         #echo -e "$( eval_gettext "Basically, your Desktop and Graphical interface/system." )" >> "$tempfile"
 
         { echo 10 ; sleep 30 ; } \
-            | $guitool --progress --text="$( eval_gettext "Counting translated messages..." )" --pulsate &
+            | $guitool --progress --text="$( eval_gettext "Counting translated messages..." )" --pulsate --no-cancel &
         pid_guitool_counting=$!
 
         for item_v in ${translating_d}/elive/*
