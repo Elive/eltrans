@@ -264,7 +264,7 @@ preferences_edit(){
 ############################################################################
 select_language(){
     local ui_user_answered
-    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select the language to which translate" )" --text="$translated_message" || echo cancel )"
+    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select the language to translate to" )" --text="$translated_message" || echo cancel )"
 
     ui_answer_check
     language_user="$ui_user_answered"
@@ -279,7 +279,7 @@ select_language(){
             #$guitool --info --text="$( eval_gettext "Thank you for collaborating in the proofreading of the messages. In your systray you can find a grammar checker tool. If you think that the spelling of the original messages is incorrect or not giving the right information to the user, feel free to improve them. If you do not understand what a message means, ask the developers." )"
             $guitool --info --text="$( eval_gettext "IMPORTANT: The quality of the automatic pre-translations depends heavily on the grammatical and syntactical accuracy, and the clarity of the English text. For this, we use a special reverse-engineering trick explained in the forum. Basically using the Google Translator website in an inverse way, you need to examine the automated translation to a common language like Spanish or French, and modify it until the automated translation is correct. When everything looks good, use the new English message back to Eltrans. This will save a lot of time for all the translators and will make the automated translations clearer and more understandable. More information about this technique can be found in the Forums." )"
 
-            if ! $guitool --question --text="$( eval_gettext "Do you know already the procedure for the English approvals method that we use?" )" ; then
+            if ! $guitool --question --text="$( eval_gettext "Do you already know the procedure for the English approvals method that we use?" )" ; then
                 web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-improve-the-english-sentences-in-elive-proofreading/1055" &
             fi
 
@@ -288,7 +288,7 @@ select_language(){
 
         # always have a window of google translator opened:
         if ! ps ux | grep -v grep | grep -qs "web-launcher.*translate.google.com" ; then
-            el_notify normal gtranslator "Google Translator" "$( eval_gettext "Do not close the google-translator window. You should follow the proofreading method that we use to verify the Elive messages." )"
+            el_notify normal gtranslator "Google Translator" "$( eval_gettext "Do not close the Google Translate window. You should follow the proofreading method that we use to verify the Elive messages." )"
             # always run a web browser with google translator since its the needed tool to use for it
             web-launcher --incognito --app="https://translate.google.com" &
         fi
@@ -386,9 +386,9 @@ translate_elive(){
     if [[ -n "$recent_changes_diffed" ]] ; then
         # only me? ignore...
         if [[ "$recent_changes_authors" != "${pref_user_cached_v}" ]] ; then
-            $guitool --warning --text="$( eval_gettext "The file that you want to translate has been modified in the last 3 days by other collaborators. You should not worry about this message, this is only a notification to know that other translators worked recently on the same file and avoid possible conflicts between versions translated.\n\nThese translators was:" ) ${recent_changes_authors// /, }"
+            $guitool --warning --text="$( eval_gettext "The file that you want to translate has been modified in the last 3 days by other collaborators. You should not worry about this message, this is only a notification to know that other translators worked recently on the same file and avoid possible conflicts between versions translated.\n\nThese translators were:" ) ${recent_changes_authors// /, }"
 
-            if ! $guitool --question --text="$( eval_gettext "Do you want to continue editing this translation? Otherwise, you can select another element to translate" )" ; then
+            if ! $guitool --question --text="$( eval_gettext "Do you want to continue editing this translation? Otherwise, you can select another element to translate." )" ; then
                 return 0
             fi
         fi
@@ -466,7 +466,7 @@ translation_elive_install(){
     svndiff="$( svn diff --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" || true )"
 
     if [[ -n "$svndiff" ]] ; then
-        if $guitool --question --text="$( eval_gettext "Install and use the translation in your system now? It is suggested to test the made translations before sending them to Elive to verify that the application reads correctly and is consistent." )" ; then
+        if $guitool --question --text="$( eval_gettext "Install and use the translation in your system now? It is suggested to test your translations before sending them to Elive to verify that the application reads correctly and is consistent." )" ; then
 
             if ! [[ -d "/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES" ]] ; then
                 gksu "mkdir -p /usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES"
@@ -747,7 +747,7 @@ translate_e17_new_language(){
     cd "${translating_e17_d}"
 
 
-    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select the language to which translate" )" --text="$translated_message" || echo cancel )"
+    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select the language to translate to" )" --text="$translated_message" || echo cancel )"
 
     ui_answer_check
     language_user="$ui_user_answered"
@@ -1050,7 +1050,7 @@ translate_new(){
                 # checks
                 if [[ "${tr_version_v}" -gt "$eltrans_version_v" ]] ; then
                     if ! ((is_showed_message_upgrade)) ; then
-                        $guitool --error --text="$( eval_gettext "Some translations require a newer version of Eltrans. Please update Eltrans first." )" &
+                        $guitool --error --text="$( eval_gettext "Some translations require a newer version of Eltrans. Please update Eltrans first. These translations will not show in the list until you have updated. You could try running the command \"apui eltrans\"." )" &
                         is_showed_message_upgrade=1
                     fi
                     continue
@@ -1139,7 +1139,7 @@ translate_new(){
         echo -e "Cleanups" >> "${tempfile}_order_8_"
         echo -e "-" >> "${tempfile}_order_8_"
         echo -e "$( eval_gettext "Clean, undo or remove" )" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Manage your conflicting translations." )" >> "${tempfile}_order_8_"
+        echo -e "$( eval_gettext "Manage your translations." )" >> "${tempfile}_order_8_"
 
 
         kill "$pid_guitool_counting" 1>/dev/null 2>&1 || true
