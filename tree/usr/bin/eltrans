@@ -227,7 +227,7 @@ Important notes:
   - If the original message is just correct, you can recyclate it fastly pressing 'Ctrl + b'
 "
 
-    echo "$help_main" | $guitool --text-info --title="How to use eltrans" --width=540 --height=500  1>/dev/null 2>&1
+    echo "$help_main" | $guitool --text-info --title="How to use eltrans" --width=540 --height=500 1>/dev/null &
 
     el_flag add instructions_show
 
