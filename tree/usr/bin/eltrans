@@ -968,16 +968,16 @@ count_messages_completed(){
     unset count_percent_v count_percent_translate_v count_percent_fuzzy_v count_msg_all_v count_msgstr_all_v
 
     # how much messages we have?
-    count_msg_all_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgid \"\")/ ){next}}; { if ($0 ~ /^msgid "/) {count++} }; END {print count}' "$_tr_po" )"
+    count_msg_all_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgid "")/ ){next}}; { if ($0 ~ /^msgid "/) {count++} }; END {print count}' "$_tr_po" )"
     [[ -z "$count_msg_all_v" ]] && count_msg_all_v=0
 
     # messages translated
-    count_msgstr_all_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgstr \"\")/ ){next}}; { if ($0 ~ /^msgstr "/) {count++} }; END {print count}' "$_tr_po" )"
+    count_msgstr_all_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgstr "")/ ){next}}; { if ($0 ~ /^msgstr "/) {count++} }; END {print count}' "$_tr_po" )"
     [[ -z "$count_msgstr_all_v" ]] && count_msgstr_all_v=0
 
     # how much fuzzy's we have?
     count_msg_fuzzy_v="$( awk 'NR<=12 { next }; { if (prev ~ /^#.*fuzzy/ && $0 ~ /^msgid / ) {count++}; prev=$0 } END{print count}' "$_tr_po" )"
-    #count_msg_fuzzy_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgid \"\")/ ){next}}; { if ($0 ~ /^#.*fuzzy/) {count++} }; END {print count}' "$_tr_po" )"
+    #count_msg_fuzzy_v="$( awk 'NR<=12 { next }; { if ($0 ~ /^(# -|#~|msgid "")/ ){next}}; { if ($0 ~ /^#.*fuzzy/) {count++} }; END {print count}' "$_tr_po" )"
     [[ -z "$count_msg_fuzzy_v" ]] && count_msg_fuzzy_v=0
     # count the wrong fuzzys
 
@@ -1050,7 +1050,7 @@ translate_new(){
                 # checks
                 if [[ "${tr_version_v}" -gt "$eltrans_version_v" ]] ; then
                     if ! ((is_showed_message_upgrade)) ; then
-                        $guitool --error --text="$( eval_gettext "Some translations require a newer version of Eltrans. Please update Eltrans first. These translations will not show in the list until you have updated. You could try running the command \"apui eltrans\"." )" &
+                        $guitool --error --text="$( eval_gettext "Some translations require a newer version of Eltrans. Please update Eltrans first. These translations will not show in the list until you have updated. You could try running the command:" ) 'apui eltrans'" &
                         is_showed_message_upgrade=1
                     fi
                     continue
