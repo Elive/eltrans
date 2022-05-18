@@ -359,7 +359,7 @@ translate_elive(){
     if [[ "$count_percent_translate_v" -lt "85" ]] ; then
 
         if [[ "${language_user}" = "en" ]] ; then
-            if ! echo "$pref_user_cached_v" | grep -qsiE "^(Thanatermesis|Cathe)$" ; then
+            if ! echo "$pref_user_cached_v" | grep -qsiE "^(Thanatermesis|Cathe|triantares|TheTechRobo)$" ; then
 
                 $guitool --error --text="$( eval_gettext "Sorry! Translations require at least 85% of their original messages to be approved. We do this to ensure the good quality of the messages and to follow the strict use of our special technique. You can find more details in our Forums." )"
                 # do not translate this one
