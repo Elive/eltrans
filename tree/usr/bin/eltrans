@@ -1040,6 +1040,12 @@ translate_new(){
                     continue
                 fi
 
+                if LC_ALL=C  grep -qs "^show_in_eltrans:::no$" "${item_v}/settings" ; then
+                    el_debug "note: translation for '${tr_name_v}' is actually deactivated for eltrans on purpose, not including it..."
+                    continue
+                fi
+
+
                 #tr_version_v="$( LC_ALL=C grep "version_min:::" "${item_v}/settings" | tail -1 | awk -v FS=":::" '{print $2}')"
                 tr_version_v="$( LC_ALL=C awk -v FS=":::" '{if ($1 == "version_min") print $2 }' "${item_v}/settings" | tail -1 )"
                 tr_description_v="$( LC_ALL=C awk -v FS=":::" '{if ($1 == "description") print $2 }' "${item_v}/settings" | tail -1 )"
