@@ -378,15 +378,15 @@ translate_elive(){
     fi
 
     # recent changes in last 3 days:
-    recent_changes_diffed="$( svn diff --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" 2>/dev/null | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" | grep "^+msgstr " )"
-    recent_changes_authors="$( svn log -v --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -r "{$(date --date="3 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" 2>/dev/null | colors-remove | grep -E "^r[[:digit:]]+ " | awk '{print $3}' | sort -u | grep "[[:alnum:]]" | tr '\n' ' ' )"
+    recent_changes_diffed="$( svn diff --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -r "{$(date --date="1 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" 2>/dev/null | colors-remove | grep -vE "(^---|^\+\+\+|Creation-Date: |Project-Id-Version: |\"Language: |Content-Type: text/plain; |^#.*fuzzy|^#.*sh-format)" | grep -E "(^-|^\+)" | grep "^+msgstr " )"
+    recent_changes_authors="$( svn log -v --non-interactive --username "$pref_user_cached_v" --password "$pref_pass_cached_v" -r "{$(date --date="1 day ago" +%F)}:BASE" "$_tr_app_d/${language_user}.po" 2>/dev/null | colors-remove | grep -E "^r[[:digit:]]+ " | awk '{print $3}' | sort -u | grep "[[:alnum:]]" | tr '\n' ' ' )"
     read -r recent_changes_authors <<< "$recent_changes_authors"
 
-    # if somebody also edited the same translation in the last 3 days, tell the translator about it
+    # if somebody also edited the same translation in the last 24 hours, tell the translator about it
     if [[ -n "$recent_changes_diffed" ]] ; then
         # only me? ignore...
         if [[ "$recent_changes_authors" != "${pref_user_cached_v}" ]] ; then
-            $guitool --warning --text="$( eval_gettext "The file that you want to translate has been modified in the last 3 days by other collaborators. You should not worry about this message, this is only a notification to let you know that other translators recently worked on the same file, avoiding possible conflicts between versions translated.\n\nThese translators were:" ) ${recent_changes_authors// /, }"
+            $guitool --warning --text="$( eval_gettext "The file that you want to translate has been modified in the last 24 hours by other collaborators. You should not worry about this message, this is only a notification to let you know that other translators recently worked on the same file, avoiding possible conflicts between versions translated.\n\nThese translators were:" ) ${recent_changes_authors// /, }"
 
             if ! $guitool --question --text="$( eval_gettext "Do you want to continue editing this translation? Otherwise, you can select another element to translate." )" ; then
                 return 0
@@ -606,8 +606,11 @@ EOF
     fi
 
     # last message
-    if $guitool --question --text="$( eval_gettext "You can review your sent translation as well as the ones by other collaborators at:" ) http://dev.elivecd.org/timeline $( eval_gettext "View the history of translations in your web browser?" )" ; then
-        web-launcher "https://dev.elivecd.org/timeline" &
+    if ! el_flag check instructions_show_timeline ; then
+        if $guitool --question --text="$( eval_gettext "You can review your sent translation as well as the ones by other collaborators at:" ) http://dev.elivecd.org/timeline $( eval_gettext "View the history of translations in your web browser?" )" ; then
+            web-launcher "https://dev.elivecd.org/timeline" &
+        fi
+        el_flag add instructions_show_timeline
     fi
 }
 ############################################################################
