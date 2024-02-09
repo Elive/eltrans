@@ -480,7 +480,7 @@ translation_elive_install(){
             #msgfmt "${_tr_app_d}/${_tr_po_f}" -o "/tmp/.$(basename $0)-${USER}-${_tr_domain_v}.mo"
 
 
-            if gksu "msgfmt \"${_tr_app_d}/${_tr_po_f}\" -o \"/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_domain_v}.mo\"" ; then
+            if gksu msgfmt "${_tr_app_d}/${_tr_po_f}" -o "/usr/share/locale/${_tr_lang%%.*}/LC_MESSAGES/${_tr_domain_v}.mo" ; then
                 is_translation_installed=1
                 $guitool --info --text="$( eval_gettext "The translation has been installed in your system. Make sure to close the translated application and run it again to see and verify the new modified messages." )"
             else
