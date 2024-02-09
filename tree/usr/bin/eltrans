@@ -264,7 +264,7 @@ preferences_edit(){
 ############################################################################
 select_language(){
     local ui_user_answered
-    ui_user_answered="$( $guitool --entry --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select the language to translate to" )" --text="$translated_message" || echo cancel )"
+    ui_user_answered="$( $guitool --entry --width=400 --entry-text="${LANG%%_*}" --title="$( eval_gettext "Select the language to translate to" )" --text="$translated_message" || echo cancel )"
 
     ui_answer_check
     language_user="$ui_user_answered"
