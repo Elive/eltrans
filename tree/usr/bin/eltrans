@@ -1112,12 +1112,12 @@ translate_new(){
                         else
                             tr_completed_v="Needs English proofreading (${count_percent_proofread_v}% done)"
                         fi
-                        item_order_v=7
+                        item_order_v=4
                     else
 
                         if [[ "${count_percent_translate_v}" = "100" ]] && [[ "${count_percent_fuzzy_v}" = "100" ]] ; then
                             tr_completed_v="Completed ${count_percent_translate_v} %"
-                            item_order_v=6
+                            item_order_v=9
                         else
                             if [[ "${item_lang_v}" = "en" ]] ; then
                                 tr_completed_v="${count_percent_translate_v}% Approved, ${count_percent_fuzzy_v}% Proofread"
