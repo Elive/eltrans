@@ -277,7 +277,7 @@ select_language(){
     if [[ "$language_user" = "en" ]] ; then
         if ! el_flag check proofreading_warning_show ; then
             #$guitool --info --text="$( eval_gettext "Thank you for collaborating in the proofreading of the messages. In your systray you can find a grammar checker tool. If you think that the spelling of the original messages is incorrect or not giving the right information to the user, feel free to improve them. If you do not understand what a message means, ask the developers." )"
-            $guitool --info --text="$( eval_gettext "IMPORTANT: The quality of automatic pre-translation heavily depends on grammatical and syntactical accuracy and the clarity of the English text. We use a special reverse-engineering method explained in the forum. By using the Google Translator website in an inverse manner, examine the automated translation to a common language like Spanish or French, modify it until the automated translation is correct, then use that revised English text in Eltrans. This saves time for all translators and makes automated translations clearer and understandable. More details on this technique are available in the forums." )"
+            $guitool --info --text="$( eval_gettext "IMPORTANT: The quality of automatic pre-translation heavily depends on the grammatical and syntactical accuracy, as well as the clarity of the English text. We use a special reverse-engineering method explained in the forum. By using the Google Translator website in reverse, examine the automated translation into a common language like Spanish or French. Modify it until the automated translation is correct, then use that revised English text in Eltrans. This process saves time for all translators and makes automated translations clearer and more understandable. More details on this technique are available in the forums." )"
 
             if ! $guitool --question --text="$( eval_gettext "Do you already know the procedure for the English approvals method that we use?" )" ; then
                 web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-improve-the-english-sentences-in-elive-proofreading/1055" &
@@ -361,14 +361,14 @@ translate_elive(){
         if [[ "${language_user}" = "en" ]] ; then
             if ! echo "$pref_user_cached_v" | grep -qsiE "^(Thanatermesis|Cathe|triantares|TheTechRobo)$" ; then
 
-                $guitool --error --text="$( eval_gettext "Sorry! Translations need at least 85% of their original messages approved. This ensures message quality and adherence to our strict technique. More details are in our Forums." )"
+                $guitool --error --text="$( eval_gettext "Sorry! Translations need at least 85% of their original messages to be approved. This ensures message quality and adherence to our strict technique. More details are in our Forums." )"
                 # do not translate this one
                 return 0
             fi
         else
-            $guitool --warning --text="$( eval_gettext "Sorry! This translation is less than 85% approved; we need to wait for approval, or our work might be lost. Meanwhile, choose another application to translate." )"
+            $guitool --warning --text="$( eval_gettext "Sorry! This translation is less than 85% approved; we need to wait for more messages approved, or our work might be lost. Meanwhile, choose another application to translate." )"
 
-            if $guitool --question --text="$( eval_gettext "If you are proficient in English and also know a common language like French or Spanish natively, you can help improve English sentences using our special reverse-engineering method. Would you like to learn more about it?" )" ; then
+            if $guitool --question --text="$( eval_gettext "If you are proficient in English and also know a common language, such as French or Spanish natively, you can help improve English sentences using our special reverse-engineering method. Would you like to learn more about it?" )" ; then
                 web-launcher "https://forum.elivelinux.org/t/eltrans-how-to-proofread-the-original-messages-of-elive/1055" &
             fi
 
@@ -513,7 +513,7 @@ commit_changes_elive(){
         exit 1
     fi
 
-    if ! $guitool --question --title="Send translations" --text="$( eval_gettext "Sending your translation to Elive is automated, benefiting all users.\n\nIf you don't have an account, visit our forums for info.\n\nDon't delay sending your translations; others might work on the same messages, leading to incompatible versions. We suggest sending every 30 minutes.\n\nOnly send grammatically correct messages. If they're not well-structured, consider revising the original English sentences first.\n\nSend translations now?" )" ; then
+    if ! $guitool --question --title="Send translations" --text="$( eval_gettext "Sending your translation to Elive is automated, benefiting all users.\n\nIf you don't have an account, visit our forums for info.\n\nDon't delay sending your translations; others might be working on the same messages, which could lead to incompatible versions. We recommend sending every 30 minutes.\n\nOnly send grammatically correct messages. If they are not well-structured, consider revising the original English sentences first.\n\nSend translations now?" )" ; then
         return 0
     fi
 
