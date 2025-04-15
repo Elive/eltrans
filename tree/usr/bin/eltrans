@@ -1117,7 +1117,7 @@ translate_new(){
 
                         if [[ "${count_percent_translate_v}" = "100" ]] && [[ "${count_percent_fuzzy_v}" = "100" ]] ; then
                             tr_completed_v="Completed ${count_percent_translate_v} %"
-                            item_order_v=9
+                            item_order_v=8
                         else
                             if [[ "${item_lang_v}" = "en" ]] ; then
                                 tr_completed_v="${count_percent_translate_v}% Approved, ${count_percent_fuzzy_v}% Proofread"
@@ -1150,10 +1150,10 @@ translate_new(){
             fi
         done
 
-        echo -e "Cleanups" >> "${tempfile}_order_8_"
-        echo -e "-" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Clean, undo or remove" )" >> "${tempfile}_order_8_"
-        echo -e "$( eval_gettext "Manage translations." )" >> "${tempfile}_order_8_"
+        echo -e "Cleanups" >> "${tempfile}_order_9_"
+        echo -e "-" >> "${tempfile}_order_9_"
+        echo -e "$( eval_gettext "Clean, undo or remove" )" >> "${tempfile}_order_9_"
+        echo -e "$( eval_gettext "Manage translations." )" >> "${tempfile}_order_9_"
 
 
         kill "$pid_guitool_counting" 1>/dev/null 2>&1 || true
