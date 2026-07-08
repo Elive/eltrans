@@ -153,7 +153,7 @@ dependencies_install(){
     # spell package
     # FIXME: wee need to add something in our conf file to say "yes, it is already installed", this check is not enough
     if ! LC_ALL=C grep -q "myspell_installed: ${_lang}" "${preferences_f}" ; then
-        if ! dpkg -l | LC_ALL=C grep -qsE "^(ii|hi).*myspell-${_lang}" ; then
+        if ! dpkg -l | LC_ALL=C grep -qsE "^(ii|hi|iU).*myspell-${_lang}" ; then
 
             package_dict="$( apt-cache search myspell-${_lang} | LC_ALL=C grep "^myspell" | LC_ALL=C grep -v "myspell-en-" )"
             if [[ -n "$package_dict" ]] ; then
